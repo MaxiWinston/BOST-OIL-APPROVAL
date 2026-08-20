@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bost_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: bost_manifest_db
+      POSTGRES_USER: bost_user
+      POSTGRES_PASSWORD: bost_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bost_user -d bost_manifest_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7.0
+    container_name: bost_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: bost_django_api
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-bost-manifest-dev-secret-key-change-in-prod-123456
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,web
+      - POSTGRES_DB=bost_manifest_db
+      - POSTGRES_USER=bost_user
+      - POSTGRES_PASSWORD=bost_password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - MONGO_URI=mongodb://mongodb:27017/
+      - MONGO_DB_NAME=bost_manifest_docs
+      # The Vite dev server runs on a different origin; without this the
+      # browser blocks every API call from the React app.
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+    depends_on:
+      db:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  mongodb_data:
