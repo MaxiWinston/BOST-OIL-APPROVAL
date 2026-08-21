@@ -160,6 +160,35 @@ export interface AuditEntry {
   timestamp: string;
 }
 
+export interface TvBayOrder {
+  id: number;
+  npa_reference_number: string;
+  truck_number: string;
+  driver_name: string;
+  customer_company: string;
+  product_type: string;
+  volume_requested: number;
+  unit: string;
+  status: OrderStatus;
+  status_display: string;
+  lot_clearance_time: string | null;
+  loading_started_at: string | null;
+}
+
+export interface TvBaySlot {
+  slot_number: number;
+  bay_label: string;
+  is_occupied: boolean;
+  order: TvBayOrder | null;
+}
+
+export interface TvDisplayData {
+  depot_name: string;
+  server_time: string;
+  total_active: number;
+  bays: TvBaySlot[];
+}
+
 // --- Presentation helpers -------------------------------------------------
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {

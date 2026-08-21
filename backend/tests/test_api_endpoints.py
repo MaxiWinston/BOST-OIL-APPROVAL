@@ -116,3 +116,22 @@ class TestBOSTManifestAPIEndpoints:
         assert len(res.data['order_references']) == 55
         assert NPARequest.objects.filter(status=NPARequestStatus.SUBMITTED).count() >= 55
 
+    def test_tv_display_endpoint(self):
+        # Set self.npa_request to LOT_CLEARED
+        self.npa_request.status = NPARequestStatus.LOT_CLEARED
+        self.npa_request.truck_number = 'PLX-8837-E'
+        self.npa_request.driver_name = 'Kofi Mensah'
+        self.npa_request.save()
+
+        # TV display is public (no authentication required)
+        self.client.logout()
+        url = reverse('npa-request-tv-display')
+        res = self.client.get(url)
+        assert res.status_code == status.HTTP_200_OK
+        assert len(res.data['bays']) == 9
+        assert res.data['bays'][0]['is_occupied'] is True
+        assert res.data['bays'][0]['order']['truck_number'] == 'PLX-8837-E'
+        assert res.data['bays'][0]['order']['status'] == 'LOT_CLEARED'
+        assert res.data['bays'][1]['is_occupied'] is False
+
+

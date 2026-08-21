@@ -9,6 +9,7 @@ import { AdminOrders } from './pages/Admin/Orders';
 import { AdminUsers } from './pages/Admin/Users';
 import { SignOffDashboard } from './pages/SignOff/Dashboard';
 import { LoadingDockDashboard } from './pages/LoadingDock/Dashboard';
+import { TvDisplay } from './pages/LoadingDock/TvDisplay';
 
 function App() {
   return (
@@ -18,6 +19,10 @@ function App() {
           <Toaster richColors position="top-right" />
           <Routes>
             <Route path="/login" element={<Login />} />
+
+            {/* Stage 4 - Public & Kiosk TV Bay Monitor (9-squared Display) */}
+            <Route path="/tv-display" element={<TvDisplay />} />
+            <Route path="/loadingdock/tv" element={<TvDisplay />} />
 
             {/* Stage 2 - BOST depot manager */}
             <Route

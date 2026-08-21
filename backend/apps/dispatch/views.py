@@ -10,7 +10,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from apps.core.mongo import mongo_service
@@ -316,6 +316,8 @@ class NPARequestViewSet(viewsets.ModelViewSet):
                     f"{summary['new_orders_count']} new orders generated."
                 ),
                 'cycle_batch_id': summary['cycle_batch_id'],
+                'count': summary['new_orders_count'],
+                'order_references': summary['new_order_references'],
                 'rolled_over_count': summary['rolled_over_count'],
                 'new_orders_count': summary['new_orders_count'],
                 'total_active_orders_count': summary['total_active_orders_count'],
@@ -328,6 +330,61 @@ class NPARequestViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @extend_schema(responses={200: None})
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='tv-display')
+    def tv_display(self, request):
+        """Telemetry feed for yard TV screens: returns 9 bay slots with active authorized/loading vehicles."""
+        from django.utils import timezone
+        active_orders = (
+            NPARequest.objects
+            .filter(status__in=[NPARequestStatus.LOT_CLEARED, NPARequestStatus.LOADING])
+            .order_by('lot_clearance_time', 'created_at')[:9]
+        )
+
+        bays = []
+        occupied_orders = list(active_orders)
+
+        for i in range(1, 10):
+            bay_label = f"BAY {i:02d}"
+            if i - 1 < len(occupied_orders):
+                ord_obj = occupied_orders[i - 1]
+                bays.append({
+                    'slot_number': i,
+                    'bay_label': bay_label,
+                    'is_occupied': True,
+                    'order': {
+                        'id': ord_obj.id,
+                        'npa_reference_number': ord_obj.npa_reference_number,
+                        'truck_number': ord_obj.verified_truck_number or ord_obj.truck_number or 'UNKNOWN',
+                        'driver_name': ord_obj.driver_name or 'N/A',
+                        'customer_company': ord_obj.customer_company or 'N/A',
+                        'product_type': ord_obj.product_type or 'N/A',
+                        'volume_requested': float(ord_obj.volume_requested) if ord_obj.volume_requested else 0,
+                        'unit': ord_obj.unit or 'LITERS',
+                        'status': ord_obj.status,
+                        'status_display': (
+                            'READY FOR FILLING' if ord_obj.status == NPARequestStatus.LOT_CLEARED
+                            else 'FILLING IN PROGRESS'
+                        ),
+                        'lot_clearance_time': ord_obj.lot_clearance_time.isoformat() if ord_obj.lot_clearance_time else None,
+                        'loading_started_at': ord_obj.loading_started_at.isoformat() if ord_obj.loading_started_at else None,
+                    }
+                })
+            else:
+                bays.append({
+                    'slot_number': i,
+                    'bay_label': bay_label,
+                    'is_occupied': False,
+                    'order': None,
+                })
+
+        return Response({
+            'depot_name': 'BOST MAIN TERMINAL - DISPATCH & LOADING GATES',
+            'server_time': timezone.now().isoformat(),
+            'total_active': len(occupied_orders),
+            'bays': bays,
+        })
 
 
 

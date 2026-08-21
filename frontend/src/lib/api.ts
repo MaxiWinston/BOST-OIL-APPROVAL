@@ -10,6 +10,7 @@ import type {
   Paginated,
   OrderSummary,
   AuditEntry,
+  TvDisplayData,
 } from '../types';
 
 const BASE_URL = (
@@ -272,6 +273,9 @@ export const orderApi = {
       total_value: string;
       order_references: string[];
     }>('/npa-requests/send-npa-batch/', params),
+
+  /** Real-time telemetry feed for yard TV displays (9-squared grid). */
+  getTvDisplay: () => request<TvDisplayData>('/npa-requests/tv-display/'),
 };
 
 export const tankerApi = {
