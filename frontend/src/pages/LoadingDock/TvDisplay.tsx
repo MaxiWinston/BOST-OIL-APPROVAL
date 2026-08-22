@@ -17,20 +17,14 @@ function RealisticNumberPlate({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-between border-2 sm:border-[3px] border-black rounded-[5px] select-none ${
+      className={`relative inline-flex items-center justify-between border-2 sm:border-[2.5px] border-black rounded-[4px] select-none ${
         isGiant
-          ? 'h-24 sm:h-32 md:h-40 px-6 sm:px-10 max-w-4xl w-full shadow-2xl'
-          : 'h-12 sm:h-14 md:h-15 px-3 sm:px-4 w-full max-w-[380px] shadow-lg'
+          ? 'h-24 sm:h-32 md:h-38 px-6 sm:px-10 max-w-4xl w-full shadow-2xl'
+          : 'h-11 sm:h-13 md:h-14 px-3 sm:px-4 w-full max-w-[360px] shadow-md'
       } ${isYellow ? 'number-plate-gh' : 'number-plate-white'}`}
     >
-      {/* Screw Heads with 3D Depth */}
-      <div className={`absolute top-1.5 left-2 rounded-full bg-neutral-900 border border-neutral-400 shadow-inner ${isGiant ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5'}`} />
-      <div className={`absolute top-1.5 right-2 rounded-full bg-neutral-900 border border-neutral-400 shadow-inner ${isGiant ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5'}`} />
-      <div className={`absolute bottom-1.5 left-2 rounded-full bg-neutral-900 border border-neutral-400 shadow-inner ${isGiant ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5'}`} />
-      <div className={`absolute bottom-1.5 right-2 rounded-full bg-neutral-900 border border-neutral-400 shadow-inner ${isGiant ? 'w-2.5 h-2.5' : 'w-1.5 h-1.5'}`} />
-
       {/* Ghana Flag Badge */}
-      <div className={`flex flex-col items-center justify-center mr-2.5 sm:mr-3.5 px-1 py-0.5 bg-black/10 rounded border border-black/20 shrink-0 ${isGiant ? 'scale-125 sm:scale-150 mr-6 sm:mr-8' : 'scale-90 sm:scale-100'}`}>
+      <div className={`flex flex-col items-center justify-center mr-2.5 sm:mr-3.5 px-1 py-0.5 bg-black/10 rounded border border-black/30 shrink-0 ${isGiant ? 'scale-125 sm:scale-150 mr-6 sm:mr-8' : 'scale-90 sm:scale-100'}`}>
         <div className="flex flex-col w-4 h-2.5 sm:w-5 sm:h-3 rounded-[1px] overflow-hidden border border-black/40 shadow-sm">
           <div className="h-1/3 bg-[#ce1126]" />
           <div className="h-1/3 bg-[#fcd116] flex items-center justify-center">
@@ -38,17 +32,17 @@ function RealisticNumberPlate({
           </div>
           <div className="h-1/3 bg-[#006b3f]" />
         </div>
-        <span className="text-[8px] sm:text-[9px] font-black leading-tight text-black/90 font-sans mt-0.5">
+        <span className="text-[8px] sm:text-[9px] font-black leading-tight text-black font-sans mt-0.5">
           GH
         </span>
       </div>
 
-      {/* Plate Registration Digits */}
+      {/* Plate Registration Digits — Solid Black, Crisp, High Contrast */}
       <div
-        className={`flex-1 text-center font-mono font-black tracking-widest text-[#0a0a0a] drop-shadow-[0_1px_1px_rgba(255,255,255,0.75)] ${
+        className={`flex-1 text-center font-mono font-black tracking-widest text-black whitespace-nowrap overflow-hidden ${
           isGiant
-            ? 'text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-none py-1'
-            : 'text-2xl sm:text-3xl md:text-3xl lg:text-[2.5rem] leading-none'
+            ? 'text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] leading-none py-1'
+            : 'text-2xl sm:text-3xl md:text-3xl lg:text-[2.2rem] leading-none'
         }`}
       >
         {formatted}
