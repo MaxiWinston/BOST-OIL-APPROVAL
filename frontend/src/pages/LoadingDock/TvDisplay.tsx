@@ -17,22 +17,22 @@ function RealisticNumberPlate({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-between border-2 sm:border-[2.5px] border-black rounded-[4px] select-none ${
+      className={`relative inline-flex items-center justify-between border-2 sm:border-[2.5px] border-black rounded-[5px] select-none ${
         isGiant
-          ? 'h-24 sm:h-32 md:h-36 px-6 sm:px-10 max-w-4xl w-full shadow-2xl'
-          : 'h-11 sm:h-13 md:h-15 px-3 sm:px-4 w-full max-w-[360px] shadow-md'
+          ? 'h-28 sm:h-36 md:h-40 px-8 sm:px-12 max-w-5xl w-full shadow-2xl'
+          : 'h-13 sm:h-15 md:h-16 px-4 sm:px-5 w-full max-w-[420px] shadow-lg'
       } ${isYellow ? 'number-plate-gh' : 'number-plate-white'}`}
     >
       {/* Ghana Flag Badge */}
-      <div className={`flex flex-col items-center justify-center mr-2.5 sm:mr-3.5 px-1 py-0.5 bg-black/10 rounded border border-black/20 shrink-0 ${isGiant ? 'scale-125 sm:scale-150 mr-6 sm:mr-8' : 'scale-90 sm:scale-100'}`}>
-        <div className="flex flex-col w-4 h-2.5 sm:w-5 sm:h-3 rounded-[1px] overflow-hidden border border-black/40 shadow-sm">
+      <div className={`flex flex-col items-center justify-center mr-3 sm:mr-4 px-1.5 py-0.5 bg-black/10 rounded border border-black/20 shrink-0 ${isGiant ? 'scale-150 sm:scale-175 mr-8 sm:mr-10' : 'scale-100 sm:scale-115'}`}>
+        <div className="flex flex-col w-5 h-3 sm:w-5.5 sm:h-3.5 rounded-[1px] overflow-hidden border border-black/40 shadow-sm">
           <div className="h-1/3 bg-[#ce1126]" />
           <div className="h-1/3 bg-[#fcd116] flex items-center justify-center">
             <div className="w-1 h-1 bg-black rounded-full scale-75" />
           </div>
           <div className="h-1/3 bg-[#006b3f]" />
         </div>
-        <span className="text-[8px] sm:text-[9px] font-black leading-tight text-black/90 font-sans mt-0.5">
+        <span className="text-[9px] sm:text-[10px] font-black leading-tight text-black/90 font-sans mt-0.5">
           GH
         </span>
       </div>
@@ -41,15 +41,15 @@ function RealisticNumberPlate({
       <div
         className={`flex-1 text-center font-mono font-black tracking-widest text-[#0a0a0a] drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] ${
           isGiant
-            ? 'text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] leading-none'
-            : 'text-2xl sm:text-3xl md:text-3xl lg:text-[2.4rem] leading-none'
+            ? 'text-6xl sm:text-8xl md:text-9xl lg:text-[7rem] leading-none'
+            : 'text-3xl sm:text-4xl md:text-[2.7rem] lg:text-[3rem] leading-none'
         }`}
       >
         {formatted}
       </div>
 
       {/* Spacer to balance badge */}
-      <div className={isGiant ? 'w-6 sm:w-8 shrink-0' : 'w-3 sm:w-4 shrink-0'} />
+      <div className={isGiant ? 'w-8 sm:w-10 shrink-0' : 'w-4 sm:w-5 shrink-0'} />
     </div>
   );
 }
