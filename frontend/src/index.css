@@ -194,3 +194,96 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* --- Industrial Terminal & License Plate Styles --- */
+.scanline-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}
+
+.scada-grid-bg {
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px, 40px 40px, 40px 40px;
+}
+
+/* Realistic Embossed Vehicle Number Plate */
+.number-plate-gh {
+  background: linear-gradient(180deg, #ffd000 0%, #ebb400 50%, #d49f00 100%);
+  color: #111111;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(235, 180, 0, 0.3);
+  text-shadow: 
+    1px 1px 0px rgba(255, 255, 255, 0.4),
+    -1px -1px 0px rgba(0, 0, 0, 0.8),
+    0px 2px 2px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.12em;
+  font-weight: 900;
+}
+
+/* White Rear/Standard Plate Variant */
+.number-plate-white {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #d8d8d8 100%);
+  color: #111111;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(255, 255, 255, 0.2);
+  text-shadow: 
+    1px 1px 0px rgba(255, 255, 255, 0.8),
+    -1px -1px 0px rgba(0, 0, 0, 0.7),
+    0px 2px 2px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.12em;
+  font-weight: 900;
+}
+
+/* Industrial Hazard Warning Stripes */
+.hazard-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(245, 158, 11, 0.15),
+    rgba(245, 158, 11, 0.15) 10px,
+    rgba(0, 0, 0, 0.3) 10px,
+    rgba(0, 0, 0, 0.3) 20px
+  );
+}
+
+.hazard-stripes-danger {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(239, 68, 68, 0.2),
+    rgba(239, 68, 68, 0.2) 10px,
+    rgba(0, 0, 0, 0.4) 10px,
+    rgba(0, 0, 0, 0.4) 20px
+  );
+}
+
+/* Digital VFD Glow */
+.glow-amber {
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
+.glow-emerald {
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.glow-cyan {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.8), 0 0 20px rgba(6, 182, 212, 0.4);
+}

@@ -171,6 +171,8 @@ export interface TvBayOrder {
   unit: string;
   status: OrderStatus;
   status_display: string;
+  bay_state?: 'AUTHORIZED' | 'DISPENSING' | 'HOLD';
+  flow_rate_lpm?: number;
   lot_clearance_time: string | null;
   loading_started_at: string | null;
 }
@@ -179,13 +181,24 @@ export interface TvBaySlot {
   slot_number: number;
   bay_label: string;
   is_occupied: boolean;
+  is_maintenance?: boolean;
   order: TvBayOrder | null;
+}
+
+export interface TvTelemetryStats {
+  capacity_percent: number;
+  current_flow_rate: string;
+  operating_pressure_psi: string;
+  terminal_status: string;
+  weather: string;
 }
 
 export interface TvDisplayData {
   depot_name: string;
   server_time: string;
   total_active: number;
+  queued_count?: number;
+  telemetry?: TvTelemetryStats;
   bays: TvBaySlot[];
 }
 

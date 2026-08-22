@@ -2,7 +2,51 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { orderApi } from '../../lib/api';
 import type { TvDisplayData, TvBaySlot } from '../../types';
 
-// Web Audio API chime synthesizer for crisp airport/depot notification tones
+// Realistic Ghanaian / Industrial License Plate Component
+function RealisticNumberPlate({ plateNumber, variant = 'yellow' }: { plateNumber: string; variant?: 'yellow' | 'white' }) {
+  const isYellow = variant === 'yellow';
+  
+  // Format plate if standard (e.g. GN4921-22 -> GN 4921-22)
+  const formatted = plateNumber.toUpperCase().trim();
+
+  return (
+    <div
+      className={`relative inline-flex items-center justify-between border-2 border-black rounded-[4px] px-3 py-1.5 min-w-[240px] max-w-full select-none ${
+        isYellow ? 'number-plate-gh' : 'number-plate-white'
+      }`}
+    >
+      {/* Screw Heads */}
+      <div className="absolute top-1 left-1.5 w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-400 shadow-inner" />
+      <div className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-400 shadow-inner" />
+      <div className="absolute bottom-1 left-1.5 w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-400 shadow-inner" />
+      <div className="absolute bottom-1 right-1.5 w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-400 shadow-inner" />
+
+      {/* Ghana Flag Badge on Left */}
+      <div className="flex flex-col items-center justify-center mr-2.5 px-1 py-0.5 bg-black/10 rounded border border-black/20 shrink-0">
+        <div className="flex flex-col w-4 h-2.5 rounded-[1px] overflow-hidden border border-black/40 shadow-sm">
+          <div className="h-1/3 bg-[#ce1126]" />
+          <div className="h-1/3 bg-[#fcd116] flex items-center justify-center">
+            <div className="w-1 h-1 bg-black rounded-full scale-75" />
+          </div>
+          <div className="h-1/3 bg-[#006b3f]" />
+        </div>
+        <span className="text-[9px] font-black leading-tight tracking-tighter text-black/80 font-sans">
+          GH
+        </span>
+      </div>
+
+      {/* Plate Registration Number */}
+      <div className="flex-1 text-center font-mono font-black text-2xl sm:text-3xl md:text-3xl lg:text-4xl tracking-widest text-[#0c0c0c] drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)]">
+        {formatted}
+      </div>
+
+      {/* Right spacer to balance badge */}
+      <div className="w-4 shrink-0" />
+    </div>
+  );
+}
+
+// Web Audio API chime synthesizer for crisp airport/depot announcement tones
 function playBayChime() {
   try {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -10,29 +54,27 @@ function playBayChime() {
     const ctx = new AudioCtx();
 
     const now = ctx.currentTime;
-    // High note
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(587.33, now); // D5
-    gain1.gain.setValueAtTime(0.15, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    gain1.gain.setValueAtTime(0.18, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
     osc1.start(now);
-    osc1.stop(now + 0.5);
+    osc1.stop(now + 0.45);
 
-    // Resolving chime note
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(880.00, now + 0.2); // A5
-    gain2.gain.setValueAtTime(0.2, now + 0.2);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    osc2.frequency.setValueAtTime(880.00, now + 0.18); // A5
+    gain2.gain.setValueAtTime(0.22, now + 0.18);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.start(now + 0.2);
-    osc2.stop(now + 0.8);
+    osc2.start(now + 0.18);
+    osc2.stop(now + 0.75);
   } catch {
     // Ignore audio permission errors
   }
@@ -42,7 +84,7 @@ export function TvDisplay() {
   const [data, setData] = useState<TvDisplayData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [timeString, setTimeString] = useState<string>('');
-  const [localTimeString, setLocalTimeString] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [newlyAddedPlates, setNewlyAddedPlates] = useState<Set<string>>(new Set());
@@ -50,7 +92,7 @@ export function TvDisplay() {
   const previousPlatesRef = useRef<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Live Digital Clock (UTC and Local)
+  // Live Digital Clock (UTC Zulu time matching SCADA monitors)
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -58,11 +100,6 @@ export function TvDisplay() {
       const uMinutes = String(now.getUTCMinutes()).padStart(2, '0');
       const uSeconds = String(now.getUTCSeconds()).padStart(2, '0');
       setTimeString(`${uHours}:${uMinutes}:${uSeconds}`);
-
-      const lHours = String(now.getHours()).padStart(2, '0');
-      const lMinutes = String(now.getMinutes()).padStart(2, '0');
-      const lSeconds = String(now.getSeconds()).padStart(2, '0');
-      setLocalTimeString(`${lHours}:${lMinutes}:${lSeconds}`);
     };
 
     updateTime();
@@ -77,7 +114,7 @@ export function TvDisplay() {
       setData(res);
       setLastUpdated(new Date());
 
-      // Track newly authorized plates for visual pulse & audio notification
+      // Track newly authorized plates for visual pulse & audio chime
       const currentPlates = new Set<string>();
       res.bays.forEach((b) => {
         if (b.order?.truck_number) {
@@ -97,10 +134,9 @@ export function TvDisplay() {
         if (isAudioEnabled) {
           playBayChime();
         }
-        // Remove pulse after 8 seconds
         setTimeout(() => {
           setNewlyAddedPlates(new Set());
-        }, 8000);
+        }, 9000);
       }
 
       previousPlatesRef.current = currentPlates;
@@ -109,7 +145,7 @@ export function TvDisplay() {
     }
   }, [isAudioEnabled]);
 
-  // Polling every 3.5 seconds
+  // Auto-polling every 3.5 seconds
   useEffect(() => {
     fetchTelemetry();
     const timer = setInterval(fetchTelemetry, 3500);
@@ -133,10 +169,10 @@ export function TvDisplay() {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Default fallback 9 slots if loading or empty
+  // 9 Bay Slots (BAY D-01 to BAY D-09)
   const baySlots: TvBaySlot[] = data?.bays || Array.from({ length: 9 }, (_, i) => ({
     slot_number: i + 1,
-    bay_label: `BAY ${(i + 1).toString().padStart(2, '0')}`,
+    bay_label: `BAY D-${(i + 1).toString().padStart(2, '0')}`,
     is_occupied: false,
     order: null,
   }));
@@ -144,81 +180,104 @@ export function TvDisplay() {
   const occupiedCount = baySlots.filter((b) => b.is_occupied).length;
   const loadingCount = baySlots.filter((b) => b.order?.status === 'LOADING').length;
   const readyCount = occupiedCount - loadingCount;
+  const telemetry = data?.telemetry || {
+    capacity_percent: minCapacity(occupiedCount),
+    current_flow_rate: `${occupiedCount * 480 + 1200} BBL/HR`,
+    operating_pressure_psi: '68.4 PSI',
+    terminal_status: 'OPERATIONAL / NOMINAL',
+    weather: 'CLEAR 29°C / WINDS 6 KTS NW',
+  };
+
+  function minCapacity(occ: number) {
+    return Math.min(98, Math.max(45, occ * 11 + 42));
+  }
 
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-screen w-screen bg-[#070b14] text-slate-100 font-mono select-none overflow-hidden"
+      className="flex flex-col h-screen w-screen bg-[#070a12] text-slate-100 font-mono select-none overflow-hidden relative"
     >
-      {/* Top Telemetry Header */}
-      <header className="flex items-center justify-between px-6 py-2.5 bg-[#0d1527] border-b border-cyan-900/40 shrink-0 shadow-lg z-20">
-        {/* Left: Terminal Brand & Active Status */}
+      {/* Scanline CRT overlay effect for authentic telemetry feel */}
+      <div className="absolute inset-0 scanline-overlay z-30 pointer-events-none opacity-40" />
+
+      {/* Top SCADA / Telemetry Header */}
+      <header className="flex items-center justify-between px-5 py-2.5 bg-[#0a0f1d] border-b-2 border-amber-500/40 shrink-0 shadow-2xl z-20">
+        {/* Facility Identity & Status */}
         <div className="flex items-center gap-4">
-          <div className="relative flex items-center justify-center">
-            <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 animate-ping absolute" />
-            <span className="h-3.5 w-3.5 rounded-full bg-emerald-500" />
+          <div className="flex items-center justify-center p-2 rounded bg-amber-500/10 border border-amber-500/30">
+            <span className="text-xl">⛽</span>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base md:text-lg font-black tracking-wider text-cyan-400 uppercase">
-                BOST OIL DEPOT &bull; LOADING BAYS MONITOR
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-base sm:text-lg font-black tracking-widest text-amber-400 uppercase drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+                BOST OIL DEPOT &bull; GANTRY TELEMETRY &amp; DISPATCH
               </h1>
-              <span className="hidden lg:inline-block px-2 py-0.5 text-[10px] font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 rounded">
-                LIVE STAGING FEED
+              <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/60 rounded animate-pulse">
+                SCADA ONLINE
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-sans tracking-wide">
-              {data?.depot_name || 'TEMA CENTRAL TERMINAL — GATES 01-09'}
-            </p>
+            <div className="flex items-center gap-3 text-[11px] text-slate-400 font-sans tracking-wide">
+              <span>{data?.depot_name || 'TEMA CENTRAL GANTRY TERMINAL — BAYS D-01 TO D-09'}</span>
+              <span>&bull;</span>
+              <span className="text-amber-300/80 font-mono">FLOW: {telemetry.current_flow_rate}</span>
+              <span>&bull;</span>
+              <span className="text-cyan-300 font-mono">CAPACITY: {telemetry.capacity_percent}%</span>
+              <span>&bull;</span>
+              <span className="text-emerald-400/80 font-mono">SYNC: {lastUpdated.toLocaleTimeString()}</span>
+            </div>
           </div>
         </div>
 
         {/* Center: Live Bay Metric Badges */}
-        <div className="hidden md:flex items-center gap-3 bg-[#080d1a] px-4 py-1.5 rounded-md border border-slate-800">
+        <div className="hidden lg:flex items-center gap-3 bg-[#060913] px-4 py-1.5 rounded border border-slate-800 shadow-inner">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-semibold uppercase">Active Bays:</span>
-            <span className="text-sm font-bold text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800/50">
-              {occupiedCount} / 9
+            <span className="text-[11px] text-slate-400 font-semibold uppercase">Bay Load:</span>
+            <span className="text-sm font-black text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-800/60 font-mono">
+              {occupiedCount} / 9 ACTIVE
             </span>
           </div>
           <span className="text-slate-700">|</span>
-          <div className="flex items-center gap-1.5 text-xs text-amber-400">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-bold">{readyCount} Ready / Cleared</span>
+          <div className="flex items-center gap-1.5 text-xs text-amber-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="font-bold">{readyCount} AUTHORIZED</span>
           </div>
           <span className="text-slate-700">|</span>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="font-bold">{loadingCount} Loading</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="font-bold">{loadingCount} DISPENSING</span>
           </div>
         </div>
 
-        {/* Right: Digital Clocks & Kiosk Controls */}
+        {/* Right: Digital UTC Zulu Clock & Controls */}
         <div className="flex items-center gap-3">
-          {/* UTC Clock */}
-          <div className="flex items-center gap-1.5 bg-[#050811] px-3 py-1 rounded border border-cyan-900/60 shadow-inner">
-            <span className="text-[11px] text-slate-400 font-bold">UTC:</span>
-            <span className="text-base md:text-lg font-black text-amber-400 tracking-widest font-mono">
-              {timeString || '--:--:--'}
+          {/* UTC Zulu Clock */}
+          <div className="flex items-center gap-2 bg-[#04060d] px-3.5 py-1.5 rounded border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+            <span className="text-xs text-slate-400 font-bold">UTC:</span>
+            <span
+              id="digital-clock"
+              className="text-lg md:text-xl font-black text-amber-400 tracking-widest font-mono glow-amber"
+            >
+              {timeString || '00:00:00'}
             </span>
-            <span className="text-xs text-amber-500 font-black animate-pulse">Z</span>
+            <span className="text-amber-500 font-black text-sm animate-pulse">Z</span>
           </div>
 
-          {/* Local Clock */}
-          <div className="hidden sm:flex items-center gap-1.5 bg-[#050811] px-3 py-1 rounded border border-slate-800">
-            <span className="text-[11px] text-slate-400 font-bold">LOCAL:</span>
-            <span className="text-sm md:text-base font-bold text-slate-200 tracking-wider font-mono">
-              {localTimeString || '--:--:--'}
-            </span>
-          </div>
+          {/* View Toggle (Grid / Manifest Table) */}
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
+            title="Toggle 9-Squared Grid / Flight Manifest Table"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-slate-900 border border-slate-700 text-xs text-slate-300 hover:text-white transition-colors"
+          >
+            <span>{viewMode === 'grid' ? '📋 Table View' : '🔲 9-Bay Grid'}</span>
+          </button>
 
-          {/* Sound Toggle */}
+          {/* Audio Chime Toggle */}
           <button
             onClick={() => setIsAudioEnabled(!isAudioEnabled)}
             title={isAudioEnabled ? 'Mute Alert Chime' : 'Unmute Alert Chime'}
             className={`p-2 rounded border transition-colors ${
               isAudioEnabled
-                ? 'bg-cyan-950/60 border-cyan-700 text-cyan-300 hover:bg-cyan-900/60'
+                ? 'bg-amber-950/60 border-amber-600 text-amber-400 hover:bg-amber-900/60'
                 : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -234,11 +293,11 @@ export function TvDisplay() {
             )}
           </button>
 
-          {/* Fullscreen Button */}
+          {/* Fullscreen TV Kiosk Trigger */}
           <button
             onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen TV Mode'}
-            className="p-2 rounded border bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 transition-colors"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter TV Kiosk Mode'}
+            className="p-2 rounded border bg-slate-900 border-slate-700 text-slate-300 hover:text-white transition-colors"
           >
             {isFullscreen ? (
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -253,158 +312,264 @@ export function TvDisplay() {
         </div>
       </header>
 
-      {/* Main 9-Squared (3x3) Grid */}
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-3 grid-rows-3 gap-3 p-3.5 bg-[#050811] overflow-hidden">
-        {baySlots.map((bay) => {
-          const isOccupied = bay.is_occupied && bay.order;
-          const order = bay.order;
-          const isLoading = order?.status === 'LOADING';
-          const isNewlyAdded = order?.truck_number ? newlyAddedPlates.has(order.truck_number) : false;
+      {/* Main Display Area */}
+      {viewMode === 'grid' ? (
+        /* ================= 9-SQUARED (3x3) SECTIONED GRID ================= */
+        <main className="flex-1 grid grid-cols-1 md:grid-cols-3 grid-rows-3 gap-2.5 p-3 bg-[#050810] scada-grid-bg overflow-hidden">
+          {baySlots.map((bay) => {
+            const isOccupied = bay.is_occupied && bay.order;
+            const order = bay.order;
+            const isLoading = order?.status === 'LOADING';
+            const isNewlyAdded = order?.truck_number ? newlyAddedPlates.has(order.truck_number) : false;
 
-          if (!isOccupied || !order) {
-            // VACANT / STANDBY SQUARE
+            if (!isOccupied || !order) {
+              // --- VACANT / STANDBY BAY MODULE ---
+              return (
+                <div
+                  key={bay.slot_number}
+                  className="flex flex-col justify-between p-3.5 rounded bg-[#090d18]/80 border border-slate-800/80 shadow-inner relative overflow-hidden group hover:border-slate-700 transition-colors"
+                >
+                  {/* Bay Header */}
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm" />
+                      <span className="text-sm font-black text-slate-400 tracking-wider">
+                        {bay.bay_label}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-black/60 px-2 py-0.5 rounded border border-slate-800">
+                      STANDBY &bull; ARMED
+                    </span>
+                  </div>
+
+                  {/* Center Radar / Standby Graphic */}
+                  <div className="flex flex-col items-center justify-center my-auto text-center space-y-1">
+                    <div className="relative flex items-center justify-center w-12 h-12 rounded-full border border-slate-800 bg-black/40">
+                      <span className="text-xs font-mono font-bold text-slate-600">D-0{bay.slot_number}</span>
+                      <span className="absolute inset-0 rounded-full border border-dashed border-slate-700 animate-[spin_20s_linear_infinite]" />
+                    </div>
+                    <p className="text-xl md:text-2xl font-black text-slate-600 tracking-widest uppercase font-mono">
+                      BAY VACANT
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-sans">
+                      Pumps Idle &bull; Ready for Next Tanker
+                    </p>
+                  </div>
+
+                  {/* Module Footer */}
+                  <div className="flex items-center justify-between text-[10px] text-slate-600 border-t border-slate-800/60 pt-1">
+                    <span>GANTRY GATE #{bay.slot_number}</span>
+                    <span className="text-emerald-500/70 font-semibold">&bull; SENSORS NOMINAL</span>
+                  </div>
+                </div>
+              );
+            }
+
+            // --- OCCUPIED / AUTHORIZED BAY MODULE ---
             return (
               <div
                 key={bay.slot_number}
-                className="flex flex-col justify-between p-4 rounded-lg bg-[#0b1120]/70 border border-slate-800/80 shadow-inner relative overflow-hidden transition-all duration-300 group hover:border-slate-700"
+                className={`flex flex-col justify-between p-3.5 rounded shadow-2xl relative overflow-hidden transition-all duration-500 ${
+                  isNewlyAdded
+                    ? 'ring-4 ring-amber-400 bg-gradient-to-br from-amber-950/70 via-[#0e1628] to-[#080d19] border-amber-400 animate-pulse'
+                    : isLoading
+                    ? 'bg-gradient-to-br from-emerald-950/50 via-[#0b1526] to-[#060b14] border-2 border-emerald-500/80 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                    : 'bg-gradient-to-br from-amber-950/40 via-[#0b1526] to-[#060b14] border-2 border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
+                }`}
               >
-                {/* Bay Header */}
-                <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
+                {/* Bay Header & Status Badge */}
+                <div className="flex items-center justify-between border-b border-slate-700/60 pb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-600/60" />
-                    <span className="text-sm font-black text-slate-400 tracking-wider">
+                    <span
+                      className={`w-3 h-3 rounded-full ${
+                        isLoading ? 'bg-emerald-400 animate-ping' : 'bg-amber-400 animate-pulse'
+                      }`}
+                    />
+                    <span
+                      className={`text-base font-black tracking-widest font-mono ${
+                        isLoading ? 'text-emerald-400 glow-emerald' : 'text-amber-400 glow-amber'
+                      }`}
+                    >
                       {bay.bay_label}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">
-                    STANDBY
-                  </span>
-                </div>
 
-                {/* Center: Vacant Indicator */}
-                <div className="flex flex-col items-center justify-center my-auto text-center space-y-1">
-                  <div className="w-10 h-10 rounded-full border border-dashed border-slate-700 flex items-center justify-center text-slate-600 mb-1">
-                    <span className="text-xl font-bold font-mono">0{bay.slot_number}</span>
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider border shadow ${
+                      isLoading
+                        ? 'bg-emerald-950 text-emerald-300 border-emerald-500 animate-pulse'
+                        : 'bg-amber-950 text-amber-300 border-amber-500 animate-bounce'
+                    }`}
+                  >
+                    <span>{isLoading ? '⛽' : '⚡'}</span>
+                    <span>{isLoading ? 'DISPENSING IN PROGRESS' : 'AUTHORIZED &bull; PROCEED TO BAY'}</span>
                   </div>
-                  <p className="text-xl md:text-2xl font-black text-slate-600/90 tracking-widest uppercase font-mono">
-                    VACANT
-                  </p>
-                  <p className="text-xs text-slate-500 font-sans">
-                    Bay ready for next authorized vehicle
-                  </p>
                 </div>
 
-                {/* Footer slot marker */}
-                <div className="flex items-center justify-between text-[11px] text-slate-600 border-t border-slate-800/40 pt-1.5">
-                  <span>SLOT #{bay.slot_number}</span>
-                  <span>NO ACTIVE DISPATCH</span>
+                {/* Center: REALISTIC VEHICLE REGISTRATION PLATE */}
+                <div className="my-auto py-1.5 flex flex-col items-center justify-center">
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">
+                    ASSIGNED VEHICLE REGISTRATION
+                  </p>
+
+                  {/* Embossed Ghanaian / Industrial Vehicle Plate */}
+                  <RealisticNumberPlate
+                    plateNumber={order.truck_number}
+                    variant={isLoading ? 'white' : 'yellow'}
+                  />
+
+                  {/* Driver & Carrier Designation */}
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-xs text-slate-300 font-medium">
+                    <span className="font-bold text-white uppercase">
+                      👤 {order.driver_name || 'DRIVER'}
+                    </span>
+                    <span className="text-slate-600">&bull;</span>
+                    <span className="text-amber-300 uppercase font-bold truncate max-w-[180px]">
+                      🏢 {order.customer_company || 'CARRIER'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Product & Flow Rate Bar */}
+                <div className="flex flex-col gap-1 bg-black/60 p-2 rounded border border-slate-800">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="text-slate-400 font-semibold text-[11px]">PROD:</span>
+                      <span className="font-black text-amber-300 uppercase truncate">
+                        {order.product_type}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-slate-400 font-semibold text-[11px]">VOLUME:</span>
+                      <span className="font-mono font-black text-emerald-400 text-sm">
+                        {order.volume_requested.toLocaleString()} {order.unit}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Dispensing Flow Bar Indicator */}
+                  {isLoading && (
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
+                      <div className="bg-emerald-400 h-full w-2/3 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                    </div>
+                  )}
                 </div>
               </div>
             );
-          }
+          })}
+        </main>
+      ) : (
+        /* ================= SCADA FLIGHT MANIFEST TABLE VIEW ================= */
+        <main className="flex-1 flex flex-col p-4 bg-[#050810] scada-grid-bg overflow-y-auto">
+          {/* Column Header */}
+          <div className="grid grid-cols-[1.2fr_1.8fr_1.8fr_1.2fr_1fr_1.5fr] gap-4 px-4 py-3 bg-[#0a0f1d] border-b-2 border-amber-500/40 text-xs font-bold text-amber-400 uppercase tracking-widest">
+            <div>Plate / Vehicle ID</div>
+            <div>Carrier / Customer</div>
+            <div>Product Specification</div>
+            <div className="text-right">Volume ({baySlots[0]?.order?.unit || 'L'})</div>
+            <div className="text-center">Bay Station</div>
+            <div>Gantry Status</div>
+          </div>
 
-          // OCCUPIED / AUTHORIZED SQUARE
-          return (
-            <div
-              key={bay.slot_number}
-              className={`flex flex-col justify-between p-4 rounded-lg shadow-2xl relative overflow-hidden transition-all duration-500 ${
-                isNewlyAdded
-                  ? 'ring-4 ring-amber-400 bg-gradient-to-br from-amber-950/50 via-[#0e172a] to-[#090f1d] border-amber-400 animate-pulse'
-                  : isLoading
-                  ? 'bg-gradient-to-br from-emerald-950/40 via-[#0c182c] to-[#070e1c] border-2 border-emerald-500/70'
-                  : 'bg-gradient-to-br from-amber-950/30 via-[#0c182c] to-[#070e1c] border-2 border-amber-500/70'
-              }`}
-            >
-              {/* Top Row: Bay Identifier & Status Tag */}
-              <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`w-3 h-3 rounded-full ${
-                      isLoading ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-ping'
-                    }`}
-                  />
-                  <span
-                    className={`text-base font-black tracking-widest font-mono ${
+          {/* Active Rows */}
+          <div className="divide-y divide-slate-800/80 bg-[#070b14]/90 rounded border border-slate-800">
+            {baySlots.map((bay) => {
+              const isOccupied = bay.is_occupied && bay.order;
+              const order = bay.order;
+              const isLoading = order?.status === 'LOADING';
+
+              if (!isOccupied || !order) {
+                return (
+                  <div
+                    key={bay.slot_number}
+                    className="grid grid-cols-[1.2fr_1.8fr_1.8fr_1.2fr_1fr_1.5fr] gap-4 px-4 py-3.5 items-center text-sm text-slate-600 font-mono"
+                  >
+                    <div className="text-slate-600 font-bold">---</div>
+                    <div className="text-slate-600 uppercase font-semibold">NO ACTIVE VEHICLE</div>
+                    <div className="text-slate-600 font-sans text-xs">PUMPS STANDBY</div>
+                    <div className="text-right text-slate-600 font-bold">0</div>
+                    <div className="text-center font-bold text-slate-600">{bay.bay_label}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                      <span className="text-xs font-bold tracking-wider text-slate-600">BAY VACANT</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={bay.slot_number}
+                  className={`grid grid-cols-[1.2fr_1.8fr_1.8fr_1.2fr_1fr_1.5fr] gap-4 px-4 py-3.5 items-center text-sm font-mono transition-colors ${
+                    isLoading ? 'bg-emerald-950/20 text-emerald-300' : 'bg-amber-950/20 text-amber-300'
+                  } hover:bg-slate-800/50`}
+                >
+                  {/* Plate */}
+                  <div className="font-black text-base tracking-wider text-amber-400 glow-amber">
+                    {order.truck_number}
+                  </div>
+
+                  {/* Carrier */}
+                  <div className="font-bold text-slate-200 uppercase truncate">
+                    {order.customer_company}
+                  </div>
+
+                  {/* Product */}
+                  <div className="font-medium text-slate-300 truncate">{order.product_type}</div>
+
+                  {/* Volume */}
+                  <div className="text-right font-black text-base text-emerald-400 tracking-tight">
+                    {order.volume_requested.toLocaleString()}
+                  </div>
+
+                  {/* Bay */}
+                  <div
+                    className={`text-center font-black text-base ${
                       isLoading ? 'text-emerald-400' : 'text-amber-400'
                     }`}
                   >
                     {bay.bay_label}
-                  </span>
-                </div>
+                  </div>
 
-                <div
-                  className={`flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider border shadow-sm ${
-                    isLoading
-                      ? 'bg-emerald-900/80 text-emerald-200 border-emerald-500 animate-pulse'
-                      : 'bg-amber-900/80 text-amber-200 border-amber-400 animate-bounce'
-                  }`}
-                >
-                  <span>{isLoading ? '⛽' : '⚡'}</span>
-                  <span>{order.status_display || (isLoading ? 'FILLING NOW' : 'AUTHORIZED')}</span>
+                  {/* Status */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-3 h-3 rounded-full ${
+                        isLoading ? 'bg-emerald-400 animate-ping' : 'bg-amber-400 animate-pulse'
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-black tracking-wider ${
+                        isLoading ? 'text-emerald-400' : 'text-amber-400 animate-pulse'
+                      }`}
+                    >
+                      {isLoading ? 'DISPENSING IN PROGRESS' : 'AUTHORIZED &bull; PROCEED TO BAY'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+        </main>
+      )}
 
-              {/* Center: BOLD DRIVER NUMBER PLATE */}
-              <div className="my-auto py-2 text-center flex flex-col items-center justify-center">
-                <p className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-slate-400 mb-1">
-                  AUTHORIZED VEHICLE NUMBER PLATE
-                </p>
-
-                {/* Giant Digital Registration Plate */}
-                <div className="w-full bg-black/90 border-2 border-amber-400/90 rounded-md py-2.5 px-3 shadow-[0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-center">
-                  <span className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-black text-amber-300 tracking-widest font-mono drop-shadow-[0_0_12px_rgba(252,211,77,0.8)]">
-                    {order.truck_number}
-                  </span>
-                </div>
-
-                {/* Driver & Carrier info */}
-                <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-slate-300 font-medium">
-                  <span className="font-semibold text-white">
-                    👤 {order.driver_name || 'Driver Assigned'}
-                  </span>
-                  <span className="text-slate-500">&bull;</span>
-                  <span className="text-cyan-300 truncate max-w-[200px]">
-                    🏢 {order.customer_company || 'Customer'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom Row: Product & Volume Specification */}
-              <div className="flex items-center justify-between bg-black/50 px-3 py-2 rounded border border-slate-800 text-xs">
-                <div className="flex items-center gap-1.5 truncate">
-                  <span className="text-slate-400 font-semibold">PRODUCT:</span>
-                  <span className="font-bold text-slate-100 uppercase truncate">
-                    {order.product_type}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-slate-400 font-semibold">VOL:</span>
-                  <span className="font-mono font-bold text-emerald-400 text-sm">
-                    {order.volume_requested.toLocaleString()} {order.unit}
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </main>
-
-      {/* Footer Status Ticker */}
-      <footer className="bg-[#090e1c] border-t border-cyan-900/40 h-10 shrink-0 flex items-center px-4 overflow-hidden relative shadow-lg z-20">
-        {/* Static Badge */}
-        <div className="bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1 rounded shadow z-10 whitespace-nowrap flex items-center gap-1.5 absolute left-3">
+      {/* Footer Ticker — Matching Terminal SCADA specifications */}
+      <footer className="bg-[#090e1c] border-t-2 border-slate-800 h-11 shrink-0 flex items-center px-4 overflow-hidden relative shadow-2xl z-20">
+        {/* Static SYS MSG Label */}
+        <div className="bg-[#f59e0b] text-slate-950 text-xs font-black px-3 py-1 rounded shadow-md z-10 whitespace-nowrap flex items-center gap-1.5 absolute left-3">
           <span className="h-2 w-2 rounded-full bg-slate-950 animate-ping" />
-          DEPOT NOTICE
+          SYS MSG:
         </div>
 
-        {/* Continuous Scrolling Marquee */}
-        <div className="ml-36 w-full overflow-hidden whitespace-nowrap flex items-center">
-          <div className="inline-block animate-marquee text-xs text-amber-300/90 font-mono tracking-wider">
-            [NOTICE] ALL DRIVERS WITH DISPLAYED NUMBER PLATES PROCEED DIRECTLY TO ASSIGNED BAYS 01-09 &nbsp;&bull;&nbsp;
-            [SAFETY] MANDATORY PPE, GROUNDING CLAMPS &amp; WHEEL CHOCKS REQUIRED BEFORE DISPENSING &nbsp;&bull;&nbsp;
-            [CAPACITY] FLOW RATE: 4,200 BBL/HR &bull; TERMINAL ACTIVE BAYS: {occupiedCount}/9 &bull; LAST REFRESH:{' '}
-            {lastUpdated.toLocaleTimeString()} &nbsp;&bull;&nbsp;
-            [DISPATCH] VEHICLES DEPARTING THE BAY ARE CLEARED AUTOMATICALLY UPON WAYBILL SIGN-OFF
+        {/* Scrolling Ticker Container */}
+        <div className="ml-32 w-full overflow-hidden whitespace-nowrap flex items-center">
+          <div className="inline-block animate-marquee text-xs text-amber-300 tracking-widest font-mono drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]">
+            [INFO] WEATHER: {telemetry.weather} &nbsp;&bull;&nbsp;
+            [OPERATIONS] TERMINAL CAPACITY: {telemetry.capacity_percent}% - OPERATIONS NOMINAL &nbsp;&bull;&nbsp;
+            [TELEMETRY] CURRENT FLOW RATE: {telemetry.current_flow_rate} &nbsp;&bull;&nbsp;
+            [NOTICE] VEHICLES WITH DISPLAYED NUMBER PLATES PROCEED DIRECTLY TO DESIGNATED BAYS D-01 TO D-09 &nbsp;&bull;&nbsp;
+            [SAFETY] MANDATORY PPE, GROUNDING CLAMP &amp; ENGINE SHUTOFF BEFORE DISPENSING &nbsp;&bull;&nbsp;
+            [DISPATCH] RELEASING THE WAYBILL AT THE LOADING DOCK AUTOMATICALLY CLEARS THE BAY ON THIS DISPLAY
           </div>
         </div>
       </footer>
