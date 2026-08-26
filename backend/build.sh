@@ -11,4 +11,8 @@ python manage.py collectstatic --no-input
 echo "==> Running database migrations..."
 python manage.py migrate
 
+echo "==> Seeding initial demo data & users..."
+python manage.py seed_demo
+
 echo "==> Build completed successfully!"
+
