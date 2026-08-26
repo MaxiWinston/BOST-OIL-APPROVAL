@@ -37,7 +37,14 @@ class MongoDBService:
             mongo_uri = getattr(settings, 'MONGO_URI', 'mongodb://localhost:27017/')
             db_name = getattr(settings, 'MONGO_DB_NAME', 'bost_manifest_docs')
             
-            self._client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+            client_kwargs = {'serverSelectionTimeoutMS': 3000}
+            try:
+                import certifi
+                client_kwargs['tlsCAFile'] = certifi.where()
+            except ImportError:
+                pass
+
+            self._client = MongoClient(mongo_uri, **client_kwargs)
             self._client.admin.command('ping')
             self._db = self._client[db_name]
             logger.info("Connected to MongoDB: %s", db_name)

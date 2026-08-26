@@ -6,13 +6,15 @@ from datetime import timedelta
 from pathlib import Path
 from decouple import config
 
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-bost-manifest-dev-secret-key-123456')
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,*.vercel.app,*.onrender.com,*.railway.app', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 # Installed applications
 INSTALLED_APPS = [
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,9 +75,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bost_manifest.wsgi.application'
 
 # Database Configuration
-USE_SQLITE = config('USE_SQLITE', default=True, cast=bool)
+DATABASE_URL = config('DATABASE_URL', default='')
+USE_SQLITE = config('USE_SQLITE', default=(not bool(DATABASE_URL)), cast=bool)
 
-if USE_SQLITE:
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+elif USE_SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -139,14 +151,17 @@ REST_FRAMEWORK = {
 }
 
 # ---------------------------------------------------------------------------
-# CORS - the React dev server runs on a different origin to the Django API,
-# so the browser will block every request without these headers.
+# CORS - Allow frontend origins (Vite local dev + Vercel / production domains)
 # ---------------------------------------------------------------------------
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000',
     cast=lambda v: [s.strip() for s in v.split(',') if s.strip()],
 )
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
@@ -155,7 +170,11 @@ CORS_ALLOW_HEADERS = [
 ]
 CORS_EXPOSE_HEADERS = ['x-correlation-id']
 
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default=','.join(CORS_ALLOWED_ORIGINS) if CORS_ALLOWED_ORIGINS else 'http://localhost:5173',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()],
+)
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
