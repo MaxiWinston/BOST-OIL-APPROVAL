@@ -1,4 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  GasPumpIcon, 
+  LightningIcon, 
+  UserIcon, 
+  BuildingsIcon, 
+  DropIcon,
+  PackageIcon, 
+  ArrowsOutIcon, 
+  ArrowsInIcon, 
+  CaretLeftIcon, 
+  CaretRightIcon, 
+  XIcon,
+  ShieldCheckIcon,
+  BroadcastIcon
+} from '@phosphor-icons/react';
 import { orderApi } from '../../lib/api';
 import type { TvDisplayData, TvBaySlot } from '../../types';
 
@@ -203,7 +218,7 @@ export function TvDisplay() {
       <header className="flex items-center justify-between px-6 py-3.5 bg-[#102f71] text-white shadow-md shrink-0 z-20">
         <div className="flex items-center gap-3.5">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 border border-white/20 shadow-inner">
-            <span className="text-xl">⛽</span>
+            <GasPumpIcon className="h-5 w-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -249,9 +264,11 @@ export function TvDisplay() {
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             className="p-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
+            {isFullscreen ? (
+              <ArrowsInIcon className="w-4 h-4" />
+            ) : (
+              <ArrowsOutIcon className="w-4 h-4" />
+            )}
           </button>
         </div>
       </header>
@@ -296,10 +313,10 @@ export function TvDisplay() {
                 </div>
 
                 {/* Bottom Row */}
-                <div className="text-[11px] text-slate-400 border-t border-slate-100 pt-1.5 flex justify-between">
+                <div className="text-[11px] text-slate-400 border-t border-slate-100 pt-1.5 flex justify-between items-center">
                   <span className="font-mono">Gantry Gate #{bay.slot_number}</span>
                   <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <ShieldCheckIcon className="w-3.5 h-3.5" />
                     Armed
                   </span>
                 </div>
@@ -340,7 +357,11 @@ export function TvDisplay() {
                       : 'bg-blue-50 text-[#102f71] border-blue-200 animate-pulse'
                   }`}
                 >
-                  <span>{isLoading ? '⛽' : '⚡'}</span>
+                  {isLoading ? (
+                    <GasPumpIcon className="h-3.5 w-3.5" />
+                  ) : (
+                    <LightningIcon className="h-3.5 w-3.5" />
+                  )}
                   <span>{isLoading ? 'Dispensing' : 'Proceed to Bay'}</span>
                 </span>
               </div>
@@ -355,20 +376,24 @@ export function TvDisplay() {
 
               {/* Driver & Carrier Subtitle */}
               <div className="flex items-center justify-between text-xs px-1 text-slate-600 font-medium">
-                <span className="font-bold text-[#102f71] uppercase truncate max-w-[140px]">
-                  👤 {order.driver_name || 'Driver'}
+                <span className="font-bold text-[#102f71] uppercase truncate max-w-[140px] flex items-center gap-1">
+                  <UserIcon className="h-3.5 w-3.5 text-[#102f71] shrink-0" />
+                  {order.driver_name || 'Driver'}
                 </span>
-                <span className="text-slate-600 font-semibold uppercase truncate max-w-[140px]">
-                  🏢 {order.customer_company || 'Carrier'}
+                <span className="text-slate-600 font-semibold uppercase truncate max-w-[140px] flex items-center gap-1">
+                  <BuildingsIcon className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                  {order.customer_company || 'Carrier'}
                 </span>
               </div>
 
               {/* Bottom Row: Product & Volume Bar */}
               <div className="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/80 text-xs mt-1.5">
-                <span className="font-bold text-[#102f71] uppercase truncate">
+                <span className="font-bold text-[#102f71] uppercase truncate flex items-center gap-1">
+                  <DropIcon className="h-3.5 w-3.5 text-[#102f71]" />
                   {order.product_type}
                 </span>
-                <span className="font-mono font-bold text-emerald-700 text-xs sm:text-sm pl-2">
+                <span className="font-mono font-bold text-emerald-700 text-xs sm:text-sm pl-2 flex items-center gap-1">
+                  <PackageIcon className="h-3.5 w-3.5 text-emerald-600" />
                   {order.volume_requested.toLocaleString()} {order.unit}
                 </span>
               </div>
@@ -408,7 +433,7 @@ export function TvDisplay() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#7fb445] animate-ping" />
+              <BroadcastIcon className="w-5 h-5 text-[#7fb445] animate-pulse" />
               <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight font-sans">
                 {activeSpotlightBay.bay_label} Spotlight
               </h2>
@@ -416,9 +441,9 @@ export function TvDisplay() {
 
             <button
               onClick={() => setSelectedBaySlot(null)}
-              className="px-4 py-2 rounded-lg bg-white text-[#102f71] hover:bg-blue-50 text-xs font-bold tracking-wider uppercase transition-colors flex items-center gap-2 shadow"
+              className="px-4 py-2 rounded-lg bg-white text-[#102f71] hover:bg-blue-50 text-xs font-bold tracking-wider uppercase transition-colors flex items-center gap-1.5 shadow"
             >
-              <span>✕</span>
+              <XIcon className="w-4 h-4" />
               <span>Close (ESC)</span>
             </button>
           </div>
@@ -432,15 +457,22 @@ export function TvDisplay() {
               <>
                 {/* Calling Status Banner */}
                 <div
-                  className={`px-8 py-2.5 rounded-full text-center font-bold tracking-wide uppercase text-base sm:text-xl border shadow-lg ${
+                  className={`px-8 py-2.5 rounded-full text-center font-bold tracking-wide uppercase text-base sm:text-xl border shadow-lg flex items-center justify-center gap-2.5 ${
                     activeSpotlightBay.order.status === 'LOADING'
                       ? 'bg-emerald-500 text-white border-emerald-400'
                       : 'bg-white text-[#102f71] border-white animate-pulse'
                   }`}
                 >
-                  {activeSpotlightBay.order.status === 'LOADING'
-                    ? '⛽ Dispensing In Progress'
-                    : `⚡ Proceed Immediately to ${activeSpotlightBay.bay_label}`}
+                  {activeSpotlightBay.order.status === 'LOADING' ? (
+                    <GasPumpIcon className="h-5 w-5" />
+                  ) : (
+                    <LightningIcon className="h-5 w-5 text-[#102f71]" />
+                  )}
+                  <span>
+                    {activeSpotlightBay.order.status === 'LOADING'
+                      ? 'Dispensing In Progress'
+                      : `Proceed Immediately to ${activeSpotlightBay.bay_label}`}
+                  </span>
                 </div>
 
                 {/* Giant Horizontal License Plate */}
@@ -454,14 +486,24 @@ export function TvDisplay() {
 
                 {/* Driver & Commercial Details Bar */}
                 <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-base sm:text-lg text-[#102f71] font-bold bg-white px-8 py-4 rounded-xl border border-slate-200 shadow-2xl">
-                  <span>👤 Driver: {activeSpotlightBay.order.driver_name}</span>
+                  <span className="flex items-center gap-1.5">
+                    <UserIcon className="h-5 w-5 text-[#102f71]" />
+                    Driver: {activeSpotlightBay.order.driver_name}
+                  </span>
                   <span className="text-slate-300">&bull;</span>
-                  <span className="text-slate-700">🏢 Carrier: {activeSpotlightBay.order.customer_company}</span>
+                  <span className="flex items-center gap-1.5 text-slate-700">
+                    <BuildingsIcon className="h-5 w-5 text-slate-500" />
+                    Carrier: {activeSpotlightBay.order.customer_company}
+                  </span>
                   <span className="text-slate-300">&bull;</span>
-                  <span className="text-[#102f71]">⛽ Product: {activeSpotlightBay.order.product_type}</span>
+                  <span className="flex items-center gap-1.5 text-[#102f71]">
+                    <DropIcon className="h-5 w-5 text-[#102f71]" />
+                    Product: {activeSpotlightBay.order.product_type}
+                  </span>
                   <span className="text-slate-300">&bull;</span>
-                  <span className="text-emerald-600 font-mono">
-                    📦 Volume: {activeSpotlightBay.order.volume_requested.toLocaleString()} {activeSpotlightBay.order.unit}
+                  <span className="flex items-center gap-1.5 text-emerald-600 font-mono">
+                    <PackageIcon className="h-5 w-5 text-emerald-600" />
+                    Volume: {activeSpotlightBay.order.volume_requested.toLocaleString()} {activeSpotlightBay.order.unit}
                   </span>
                 </div>
               </>
@@ -484,14 +526,16 @@ export function TvDisplay() {
               onClick={() => setSelectedBaySlot((prev) => (prev !== null ? (prev === 1 ? 9 : prev - 1) : 1))}
               className="hover:text-white transition-colors flex items-center gap-1 font-semibold"
             >
-              ◀ Previous Bay
+              <CaretLeftIcon className="w-4 h-4" />
+              <span>Previous Bay</span>
             </button>
             <span className="text-blue-200">Click anywhere or press ESC to return</span>
             <button
               onClick={() => setSelectedBaySlot((prev) => (prev !== null ? (prev % 9) + 1 : 1))}
               className="hover:text-white transition-colors flex items-center gap-1 font-semibold"
             >
-              Next Bay ▶
+              <span>Next Bay</span>
+              <CaretRightIcon className="w-4 h-4" />
             </button>
           </div>
         </div>

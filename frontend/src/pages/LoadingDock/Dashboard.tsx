@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { TelevisionIcon } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
 import { Button } from '../../components/ui/button';
@@ -140,10 +141,11 @@ export function LoadingDockDashboard() {
               href="/tv-display"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-amber-400 hover:bg-slate-800 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-md bg-[#102f71] px-3.5 py-2 text-sm font-semibold text-white hover:bg-blue-900 transition-colors shadow-sm"
             >
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              📺 Open TV Bay Display
+              <span className="h-2 w-2 rounded-full bg-[#7fb445] animate-ping" />
+              <TelevisionIcon className="h-4 w-4" />
+              Open TV Bay Display
             </a>
             <Button variant="outline" onClick={refresh} disabled={loading}>
               {loading ? 'Refreshing…' : 'Refresh'}
