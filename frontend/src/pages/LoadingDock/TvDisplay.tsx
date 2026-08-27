@@ -13,14 +13,14 @@ function RealisticNumberPlate({
   isGiant?: boolean;
 }) {
   const isYellow = variant === 'yellow';
-  const formatted = plateNumber.toUpperCase().trim();
+  const formatted = (plateNumber || '').toUpperCase().trim();
 
   return (
     <div
       className={`relative inline-flex items-center justify-between border-2 sm:border-[2.5px] border-black rounded-[4px] select-none ${
         isGiant
-          ? 'h-24 sm:h-32 md:h-38 px-6 sm:px-10 max-w-4xl w-full shadow-2xl'
-          : 'h-11 sm:h-13 md:h-14 px-3 sm:px-4 w-full max-w-[360px] shadow-md'
+          ? 'h-24 sm:h-32 md:h-36 px-6 sm:px-10 max-w-4xl w-full shadow-2xl'
+          : 'h-12 sm:h-13 md:h-14 px-3 sm:px-4 w-full max-w-[360px] shadow-md'
       } ${isYellow ? 'number-plate-gh' : 'number-plate-white'}`}
     >
       {/* Ghana Flag Badge */}
@@ -197,47 +197,57 @@ export function TvDisplay() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-screen w-screen bg-[#070b14] text-slate-100 font-mono select-none overflow-hidden"
+      className="flex flex-col h-screen w-screen bg-[#f8fafc] text-[#102f71] font-sans select-none overflow-hidden"
     >
-      {/* Top Header */}
-      <header className="flex items-center justify-between px-5 py-2.5 bg-[#0c1322] border-b-2 border-amber-500/40 shrink-0 shadow-lg z-20">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center p-1.5 rounded bg-amber-500/10 border border-amber-500/30">
-            <span className="text-lg">⛽</span>
+      {/* Top Header — Clean Brand Dark Blue & White */}
+      <header className="flex items-center justify-between px-6 py-3.5 bg-[#102f71] text-white shadow-md shrink-0 z-20">
+        <div className="flex items-center gap-3.5">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 border border-white/20 shadow-inner">
+            <span className="text-xl">⛽</span>
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-black tracking-widest text-amber-400 uppercase font-mono">
-              BOST OIL DEPOT &bull; GANTRY LOADING BAYS
-            </h1>
-            <p className="text-[11px] text-slate-400 font-sans tracking-wide">
-              {data?.depot_name || 'TEMA CENTRAL GANTRY TERMINAL — BAYS 01 TO 09'}
+            <div className="flex items-center gap-2">
+              <span className="px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-[#7fb445] text-white rounded">
+                LIVE
+              </span>
+              <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white uppercase font-sans">
+                BOST OIL DEPOT &bull; GANTRY LOADING BAYS
+              </h1>
+            </div>
+            <p className="text-xs text-blue-100/80 font-normal tracking-wide">
+              {data?.depot_name || 'Tema Central Gantry Terminal — Dispatch Bay Monitor'}
             </p>
           </div>
         </div>
 
-        {/* Live Badges & Clock */}
-        <div className="flex items-center gap-3.5">
-          <div className="hidden sm:flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-xs">
-            <span className="text-slate-400 font-semibold">ACTIVE BAYS:</span>
-            <span className="text-amber-400 font-black font-mono">{occupiedCount} / 9</span>
-            <span className="text-slate-700">|</span>
-            <span className="text-amber-300 font-bold">{readyCount} AUTHORIZED</span>
-            <span className="text-slate-700">|</span>
-            <span className="text-emerald-400 font-bold">{loadingCount} LOADING</span>
+        {/* Live Badges & UTC Clock */}
+        <div className="flex items-center gap-3">
+          {/* Active Bays Count Pill */}
+          <div className="hidden sm:flex items-center gap-2.5 bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/15 text-xs text-white">
+            <span className="text-blue-200 font-medium">Active Bays:</span>
+            <span className="font-bold text-white font-mono bg-white/20 px-1.5 py-0.5 rounded">
+              {occupiedCount} / 9
+            </span>
+            <span className="text-white/30">|</span>
+            <span className="text-amber-300 font-semibold">{readyCount} Authorized</span>
+            <span className="text-white/30">|</span>
+            <span className="text-emerald-300 font-semibold">{loadingCount} Dispensing</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[#04060d] px-3 py-1.5 rounded border border-amber-500/40 shadow-inner">
-            <span className="text-xs text-slate-400 font-bold">UTC:</span>
-            <span className="text-base font-black text-amber-400 tracking-wider font-mono glow-amber">
+          {/* UTC Clock */}
+          <div className="flex items-center gap-2 bg-[#0c2457] px-3.5 py-1.5 rounded-lg border border-white/20 shadow-inner">
+            <span className="text-[11px] text-blue-200 font-semibold uppercase tracking-wider">UTC</span>
+            <span className="text-base font-bold text-white tracking-widest font-mono">
               {timeString || '--:--:--'}
             </span>
-            <span className="text-xs text-amber-500 font-black animate-pulse">Z</span>
+            <span className="h-2 w-2 rounded-full bg-[#7fb445] animate-pulse" />
           </div>
 
+          {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-2 rounded bg-slate-900 border border-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -247,7 +257,7 @@ export function TvDisplay() {
       </header>
 
       {/* ================= 9-SQUARED (3x3) SECTIONED GRID ================= */}
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-3 grid-rows-3 gap-2.5 p-2.5 bg-[#050811] scada-grid-bg overflow-hidden">
+      <main className="flex-1 grid grid-cols-1 md:grid-cols-3 grid-rows-3 gap-3 p-3 bg-slate-100 overflow-hidden">
         {baySlots.map((bay) => {
           const isOccupied = bay.is_occupied && bay.order;
           const order = bay.order;
@@ -260,32 +270,38 @@ export function TvDisplay() {
               <div
                 key={bay.slot_number}
                 onClick={() => setSelectedBaySlot(bay.slot_number)}
-                className="flex flex-col justify-between p-3.5 rounded-lg bg-[#0a0f1c]/70 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition-colors group"
+                className="flex flex-col justify-between p-3.5 rounded-xl bg-white/90 border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300 hover:shadow-md transition-all group"
               >
                 {/* Header Row */}
-                <div className="flex items-center justify-between border-b border-slate-800/60 pb-1.5">
-                  <span className="text-base sm:text-lg font-black text-slate-500 tracking-wider">
-                    {bay.bay_label}
-                  </span>
-                  <span className="text-[11px] font-bold text-slate-600 uppercase bg-black/40 px-2 py-0.5 rounded border border-slate-800">
-                    STANDBY
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                    <span className="text-base font-bold text-slate-500 font-mono tracking-wider">
+                      {bay.bay_label}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                    Standby
                   </span>
                 </div>
 
                 {/* Center */}
                 <div className="my-auto text-center py-2">
-                  <p className="text-2xl sm:text-3xl font-black text-slate-700/80 tracking-widest uppercase font-mono">
-                    BAY VACANT
+                  <p className="text-xl sm:text-2xl font-bold text-slate-300 tracking-wider uppercase font-sans">
+                    Bay Vacant
                   </p>
-                  <p className="text-[11px] text-slate-600 font-sans mt-0.5">
-                    Ready for Next Tanker
+                  <p className="text-xs text-slate-400 font-sans mt-0.5">
+                    Ready for next authorized tanker
                   </p>
                 </div>
 
                 {/* Bottom Row */}
-                <div className="text-[11px] text-slate-600 border-t border-slate-800/40 pt-1 flex justify-between">
-                  <span>GANTRY GATE #{bay.slot_number}</span>
-                  <span className="text-emerald-500/70 font-semibold">&bull; ARMED</span>
+                <div className="text-[11px] text-slate-400 border-t border-slate-100 pt-1.5 flex justify-between">
+                  <span className="font-mono">Gantry Gate #{bay.slot_number}</span>
+                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Armed
+                  </span>
                 </div>
               </div>
             );
@@ -296,39 +312,36 @@ export function TvDisplay() {
             <div
               key={bay.slot_number}
               onClick={() => setSelectedBaySlot(bay.slot_number)}
-              className={`flex flex-col justify-between p-3 rounded-lg shadow-xl cursor-pointer transition-all duration-300 ${
+              className={`flex flex-col justify-between p-3.5 rounded-xl shadow-md cursor-pointer transition-all duration-300 bg-white ${
                 isNewlyAdded
-                  ? 'ring-4 ring-amber-400 bg-[#121828] border-2 border-amber-400 animate-pulse'
+                  ? 'ring-4 ring-amber-400 border-2 border-amber-500 animate-pulse shadow-xl'
                   : isLoading
-                  ? 'bg-gradient-to-b from-[#091522] to-[#060e18] border-2 border-emerald-500/80 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]'
-                  : 'bg-gradient-to-b from-[#14141d] to-[#090b14] border-2 border-amber-500/80 hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                  ? 'border-2 border-emerald-500 hover:border-emerald-600 hover:shadow-lg'
+                  : 'border-2 border-[#102f71] hover:border-blue-700 hover:shadow-lg'
               }`}
             >
               {/* Header Row: Bay Label & Status Badge */}
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-3 h-3 rounded-full ${
-                      isLoading ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-ping'
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      isLoading ? 'bg-emerald-500 animate-pulse' : 'bg-[#102f71] animate-ping'
                     }`}
                   />
-                  <span
-                    className={`text-base sm:text-lg font-black tracking-wider ${
-                      isLoading ? 'text-emerald-400 glow-emerald' : 'text-amber-400 glow-amber'
-                    }`}
-                  >
+                  <span className="text-base font-bold tracking-tight text-[#102f71] font-mono">
                     {bay.bay_label}
                   </span>
                 </div>
 
                 <span
-                  className={`px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${
+                  className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wide border flex items-center gap-1.5 ${
                     isLoading
-                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-600'
-                      : 'bg-amber-950 text-amber-300 border border-amber-600 animate-pulse'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-blue-50 text-[#102f71] border-blue-200 animate-pulse'
                   }`}
                 >
-                  {isLoading ? '⛽ DISPENSING' : '⚡ PROCEED TO BAY'}
+                  <span>{isLoading ? '⛽' : '⚡'}</span>
+                  <span>{isLoading ? 'Dispensing' : 'Proceed to Bay'}</span>
                 </span>
               </div>
 
@@ -341,21 +354,21 @@ export function TvDisplay() {
               </div>
 
               {/* Driver & Carrier Subtitle */}
-              <div className="flex items-center justify-between text-xs px-1 text-slate-300 font-medium">
-                <span className="font-bold text-white uppercase truncate max-w-[140px]">
-                  👤 {order.driver_name || 'DRIVER'}
+              <div className="flex items-center justify-between text-xs px-1 text-slate-600 font-medium">
+                <span className="font-bold text-[#102f71] uppercase truncate max-w-[140px]">
+                  👤 {order.driver_name || 'Driver'}
                 </span>
-                <span className="text-amber-300 uppercase font-semibold truncate max-w-[140px]">
-                  🏢 {order.customer_company || 'CARRIER'}
+                <span className="text-slate-600 font-semibold uppercase truncate max-w-[140px]">
+                  🏢 {order.customer_company || 'Carrier'}
                 </span>
               </div>
 
               {/* Bottom Row: Product & Volume Bar */}
-              <div className="flex items-center justify-between bg-black/60 px-3 py-1 rounded border border-slate-800/80 text-xs mt-1">
-                <span className="font-bold text-cyan-300 uppercase truncate">
+              <div className="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/80 text-xs mt-1.5">
+                <span className="font-bold text-[#102f71] uppercase truncate">
                   {order.product_type}
                 </span>
-                <span className="font-mono font-black text-emerald-400 text-xs sm:text-sm pl-2">
+                <span className="font-mono font-bold text-emerald-700 text-xs sm:text-sm pl-2">
                   {order.volume_requested.toLocaleString()} {order.unit}
                 </span>
               </div>
@@ -364,19 +377,19 @@ export function TvDisplay() {
         })}
       </main>
 
-      {/* Footer Ticker */}
-      <footer className="bg-[#0c1322] border-t-2 border-slate-800 h-8 shrink-0 flex items-center px-4 overflow-hidden relative shadow-lg z-20">
-        <div className="bg-amber-500 text-slate-950 text-[11px] font-black px-2.5 py-0.5 rounded shadow z-10 whitespace-nowrap flex items-center gap-1 absolute left-3">
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-950 animate-ping" />
-          SYS MSG:
+      {/* Footer Ticker — Dark Blue Background with Crisp White & Lime Accents */}
+      <footer className="bg-[#102f71] border-t border-white/20 h-9 shrink-0 flex items-center px-4 overflow-hidden relative shadow-md z-20 text-white">
+        <div className="bg-[#7fb445] text-white text-[11px] font-bold px-2.5 py-0.5 rounded shadow z-10 whitespace-nowrap flex items-center gap-1.5 absolute left-3">
+          <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+          NOTICE:
         </div>
 
         <div className="ml-24 w-full overflow-hidden whitespace-nowrap flex items-center">
-          <div className="inline-block animate-marquee text-xs text-amber-300 tracking-wider font-mono">
-            [NOTICE] DRIVERS WITH DISPLAYED NUMBER PLATES PROCEED DIRECTLY TO DESIGNATED GANTRY BAY &nbsp;&bull;&nbsp;
-            [SAFETY] MANDATORY PPE, GROUNDING CLAMP &amp; ENGINE SHUTOFF BEFORE DISPENSING &nbsp;&bull;&nbsp;
-            [DISPATCH] RELEASING THE WAYBILL AT THE LOADING DOCK AUTOMATICALLY CLEARS THE BAY ON THIS SCREEN &nbsp;&bull;&nbsp;
-            [TIP] CLICK ANY BAY SQUARE TO EXPAND FULL SCREEN
+          <div className="inline-block animate-marquee text-xs text-blue-100 font-medium tracking-wide font-sans">
+            Drivers with displayed number plates proceed directly to designated gantry bay &nbsp;&bull;&nbsp;
+            Mandatory PPE, grounding clamp &amp; engine shutoff before dispensing &nbsp;&bull;&nbsp;
+            Waybill clearance at the loading dock automatically releases bay assignment &nbsp;&bull;&nbsp;
+            Click any bay square to expand spotlight view
           </div>
         </div>
       </footer>
@@ -386,27 +399,27 @@ export function TvDisplay() {
       {/* ========================================================================= */}
       {selectedBaySlot !== null && activeSpotlightBay && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-[#050814]/98 backdrop-blur-md animate-in fade-in duration-150 p-6 md:p-10 justify-between"
+          className="fixed inset-0 z-50 flex flex-col bg-[#102f71]/95 backdrop-blur-md animate-in fade-in duration-150 p-6 md:p-10 justify-between text-white"
           onClick={() => setSelectedBaySlot(null)}
         >
           {/* Top Bar */}
           <div
-            className="flex items-center justify-between border-b-2 border-slate-800 pb-3"
+            className="flex items-center justify-between border-b border-white/20 pb-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3">
-              <span className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
-              <h2 className="text-2xl sm:text-3xl font-black text-amber-400 uppercase tracking-widest font-mono glow-amber">
-                {activeSpotlightBay.bay_label} SPOTLIGHT
+              <span className="w-3.5 h-3.5 rounded-full bg-[#7fb445] animate-ping" />
+              <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase tracking-tight font-sans">
+                {activeSpotlightBay.bay_label} Spotlight
               </h2>
             </div>
 
             <button
               onClick={() => setSelectedBaySlot(null)}
-              className="px-4 py-2 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black tracking-wider uppercase transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-white text-[#102f71] hover:bg-blue-50 text-xs font-bold tracking-wider uppercase transition-colors flex items-center gap-2 shadow"
             >
               <span>✕</span>
-              <span>CLOSE (ESC)</span>
+              <span>Close (ESC)</span>
             </button>
           </div>
 
@@ -419,19 +432,19 @@ export function TvDisplay() {
               <>
                 {/* Calling Status Banner */}
                 <div
-                  className={`px-8 py-2.5 rounded-full text-center font-black tracking-widest uppercase text-base sm:text-xl border-2 ${
+                  className={`px-8 py-2.5 rounded-full text-center font-bold tracking-wide uppercase text-base sm:text-xl border shadow-lg ${
                     activeSpotlightBay.order.status === 'LOADING'
-                      ? 'bg-emerald-950 text-emerald-200 border-emerald-500'
-                      : 'bg-amber-950 text-amber-200 border-amber-400 animate-pulse'
+                      ? 'bg-emerald-500 text-white border-emerald-400'
+                      : 'bg-white text-[#102f71] border-white animate-pulse'
                   }`}
                 >
                   {activeSpotlightBay.order.status === 'LOADING'
-                    ? '⛽ DISPENSING IN PROGRESS'
-                    : `⚡ PROCEED IMMEDIATELY TO ${activeSpotlightBay.bay_label}`}
+                    ? '⛽ Dispensing In Progress'
+                    : `⚡ Proceed Immediately to ${activeSpotlightBay.bay_label}`}
                 </div>
 
                 {/* Giant Horizontal License Plate */}
-                <div className="py-2 w-full flex justify-center">
+                <div className="py-4 w-full flex justify-center">
                   <RealisticNumberPlate
                     plateNumber={activeSpotlightBay.order.truck_number}
                     variant={activeSpotlightBay.order.status === 'LOADING' ? 'white' : 'yellow'}
@@ -440,43 +453,43 @@ export function TvDisplay() {
                 </div>
 
                 {/* Driver & Commercial Details Bar */}
-                <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-lg sm:text-xl text-slate-200 font-bold bg-black/50 px-8 py-3 rounded-lg border border-slate-800 shadow-2xl">
-                  <span>👤 DRIVER: {activeSpotlightBay.order.driver_name}</span>
-                  <span className="text-slate-600">&bull;</span>
-                  <span className="text-amber-300">🏢 CARRIER: {activeSpotlightBay.order.customer_company}</span>
-                  <span className="text-slate-600">&bull;</span>
-                  <span className="text-cyan-300">⛽ PROD: {activeSpotlightBay.order.product_type}</span>
-                  <span className="text-slate-600">&bull;</span>
-                  <span className="text-emerald-400 font-mono">
-                    📦 VOLUME: {activeSpotlightBay.order.volume_requested.toLocaleString()} {activeSpotlightBay.order.unit}
+                <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-base sm:text-lg text-[#102f71] font-bold bg-white px-8 py-4 rounded-xl border border-slate-200 shadow-2xl">
+                  <span>👤 Driver: {activeSpotlightBay.order.driver_name}</span>
+                  <span className="text-slate-300">&bull;</span>
+                  <span className="text-slate-700">🏢 Carrier: {activeSpotlightBay.order.customer_company}</span>
+                  <span className="text-slate-300">&bull;</span>
+                  <span className="text-[#102f71]">⛽ Product: {activeSpotlightBay.order.product_type}</span>
+                  <span className="text-slate-300">&bull;</span>
+                  <span className="text-emerald-600 font-mono">
+                    📦 Volume: {activeSpotlightBay.order.volume_requested.toLocaleString()} {activeSpotlightBay.order.unit}
                   </span>
                 </div>
               </>
             ) : (
-              <div className="space-y-3 py-8">
-                <h3 className="text-5xl font-black text-slate-600 font-mono tracking-widest uppercase">
-                  {activeSpotlightBay.bay_label} IS VACANT
+              <div className="space-y-3 py-8 text-white">
+                <h3 className="text-4xl sm:text-5xl font-bold font-sans tracking-tight uppercase">
+                  {activeSpotlightBay.bay_label} is Vacant
                 </h3>
-                <p className="text-lg text-slate-500">Ready for next authorized vehicle</p>
+                <p className="text-lg text-blue-100">Ready for next authorized vehicle</p>
               </div>
             )}
           </div>
 
           {/* Footer Navigation */}
           <div
-            className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-800/80 pt-3"
+            className="flex items-center justify-between text-xs text-blue-100 border-t border-white/20 pt-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setSelectedBaySlot((prev) => (prev !== null ? (prev === 1 ? 9 : prev - 1) : 1))}
-              className="hover:text-white transition-colors"
+              className="hover:text-white transition-colors flex items-center gap-1 font-semibold"
             >
               ◀ Previous Bay
             </button>
-            <span className="text-slate-600">CLICK ANYWHERE OR PRESS ESC TO RETURN</span>
+            <span className="text-blue-200">Click anywhere or press ESC to return</span>
             <button
               onClick={() => setSelectedBaySlot((prev) => (prev !== null ? (prev % 9) + 1 : 1))}
-              className="hover:text-white transition-colors"
+              className="hover:text-white transition-colors flex items-center gap-1 font-semibold"
             >
               Next Bay ▶
             </button>
