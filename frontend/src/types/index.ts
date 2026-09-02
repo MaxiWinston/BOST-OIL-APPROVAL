@@ -229,7 +229,7 @@ export const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 export const ROLE_HOME: Record<UserRole, string> = {
-  MANAGER: '/admin/orders',
+  MANAGER: '/manager/orders',
   ADMIN: '/admin/dashboard',
   CUSTOMS_OFFICER: '/signoff/dashboard',
   DEPOT_OPERATOR: '/loadingdock/dashboard',

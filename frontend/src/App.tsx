@@ -26,7 +26,7 @@ function App() {
 
             {/* Stage 2 - BOST depot manager */}
             <Route
-              path="/admin/dashboard"
+              path="/manager/dashboard"
               element={
                 <ProtectedRoute allowedRoles={['MANAGER']}>
                   <AdminDashboard />
@@ -34,9 +34,27 @@ function App() {
               }
             />
             <Route
-              path="/admin/orders"
+              path="/manager/orders"
               element={
                 <ProtectedRoute allowedRoles={['MANAGER']}>
+                  <AdminOrders />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Administrator & Aliases */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
                   <AdminOrders />
                 </ProtectedRoute>
               }
