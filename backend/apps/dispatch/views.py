@@ -74,6 +74,14 @@ class NPARequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        # Ensure today's daily NPA batch exists for this depot
+        try:
+            from .scheduler import ensure_daily_batch_exists
+            ensure_daily_batch_exists(depot_id=user.depot_id if hasattr(user, 'depot_id') else None)
+        except Exception:
+            pass
+
         queryset = (
             NPARequest.objects
             .select_related(

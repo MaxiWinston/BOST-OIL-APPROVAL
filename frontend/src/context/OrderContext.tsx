@@ -48,30 +48,43 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isBackground = false) => {
     if (!isAuthenticated) {
       setOrders([]);
       setSummary(null);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (!isBackground) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [page, counts] = await Promise.all([orderApi.list(), orderApi.summary()]);
       setOrders(page.results);
       setSummary(counts);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load orders');
+      if (!isBackground) {
+        setError(err instanceof Error ? err.message : 'Failed to load orders');
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      }
     }
   }, [isAuthenticated]);
 
-  // Load whenever the session changes (login / logout / restore).
+  // Load whenever the session changes & automatically poll for new daily orders
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(() => {
+      refresh(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [refresh, isAuthenticated]);
 
   /** Splice an updated order back into local state without a full refetch. */
   const applyUpdate = useCallback((updated: Order) => {

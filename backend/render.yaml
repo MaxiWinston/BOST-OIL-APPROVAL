@@ -37,3 +37,26 @@ services:
         sync: false # e.g. https://your-bost-app.vercel.app
       - key: ALLOWED_HOSTS
         value: "localhost,127.0.0.1,.onrender.com,.vercel.app"
+
+  - type: cron
+    name: bost-npa-daily-dispatch
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    schedule: "0 5 * * *"
+    buildCommand: "./build.sh"
+    startCommand: "python manage.py run_npa_scheduler --once"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_SETTINGS_MODULE
+        value: "bost_manifest.settings.prod"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bost-postgres-db
+          property: connectionString
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: "bost_manifest_docs"
