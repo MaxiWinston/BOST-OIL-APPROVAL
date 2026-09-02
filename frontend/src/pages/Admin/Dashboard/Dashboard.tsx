@@ -1,6 +1,5 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
 import { AdminSidebar } from "@/components/AdminSidebar"
 import { SalesChart } from "@/components/SalesChart"
 import { OutlineTable } from "@/components/OutlineTable"
@@ -8,7 +7,7 @@ import { useOrders } from "@/context/OrderContext"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowRightIcon, LightningIcon } from "@phosphor-icons/react"
+import { ArrowRightIcon } from "@phosphor-icons/react"
 import { formatMoney, num, STATUS_LABEL, STATUS_DOT } from "@/lib/orderDisplay"
 import type { OrderStatus } from "@/types"
 
@@ -24,24 +23,11 @@ const PIPELINE: OrderStatus[] = [
 const EXCEPTIONS: OrderStatus[] = ['ON_HOLD', 'REJECTED', 'DENIED']
 
 export default function Page() {
-  const { orders, summary, loading, error, refresh, sendNPABatch } = useOrders()
+  const { orders, summary, loading, error, refresh } = useOrders()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [generating, setGenerating] = React.useState(false)
 
   const ordersPath = user?.role === 'MANAGER' ? '/manager/orders' : '/admin/orders'
-
-  const handleGenerateBatch = async () => {
-    setGenerating(true)
-    try {
-      const res = await sendNPABatch({ count: 10 })
-      toast.success(res.message || '10 new NPA orders generated successfully.')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to receive NPA batch.')
-    } finally {
-      setGenerating(false)
-    }
-  }
 
   const stats = React.useMemo(() => {
     const totalValue = orders.reduce((sum, order) => sum + num(order.total_price), 0)
@@ -70,15 +56,6 @@ export default function Page() {
               <p className="text-sm text-gray-500 mt-1">Operational metrics and approval workflow overview.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                className="bg-white border-amber-500/50 text-amber-900 hover:bg-amber-50"
-                onClick={handleGenerateBatch}
-                disabled={generating || loading}
-              >
-                <LightningIcon className="mr-1.5 size-4 text-amber-600" weight="fill" />
-                {generating ? 'Receiving Batch…' : 'Receive NPA Batch (+10)'}
-              </Button>
               <Button
                 variant="outline"
                 className="bg-white border-gray-300"

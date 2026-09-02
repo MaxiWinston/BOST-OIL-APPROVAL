@@ -12,7 +12,6 @@ import {
   PhoneIcon,
   TruckIcon,
   UserIcon,
-  LightningIcon,
 } from '@phosphor-icons/react';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useOrders } from '../../context/OrderContext';
@@ -31,26 +30,13 @@ import {
 const ALL_STATUSES = Object.keys(STATUS_LABEL) as OrderStatus[];
 
 export function AdminOrders() {
-  const { orders, loading, error, refresh, approveManager, reject, sendNPABatch } = useOrders();
+  const { orders, loading, error, refresh, approveManager, reject } = useOrders();
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectTarget, setRejectTarget] = useState<Order | null>(null);
-  const [generating, setGenerating] = useState(false);
-
-  const handleGenerateBatch = async () => {
-    setGenerating(true);
-    try {
-      const res = await sendNPABatch({ count: 10 });
-      toast.success(res.message || '10 new NPA orders received successfully.');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to receive NPA batch.');
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const filteredOrders = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -117,16 +103,7 @@ export function AdminOrders() {
                 {pendingReview > 0 && ` ${pendingReview} awaiting your decision.`}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                className="bg-white border-amber-500/50 text-amber-900 hover:bg-amber-50"
-                onClick={handleGenerateBatch}
-                disabled={generating || loading}
-              >
-                <LightningIcon className="mr-1.5 size-4 text-amber-600" weight="fill" />
-                {generating ? 'Receiving Batch…' : 'Receive NPA Batch (+10)'}
-              </Button>
+            <div className="flex gap-2">
               <Button variant="outline" onClick={refresh} disabled={loading}>
                 {loading ? 'Refreshing…' : 'Refresh'}
               </Button>
