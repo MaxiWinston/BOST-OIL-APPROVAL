@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react"
-import { DotsThreeVerticalIcon, MagnifyingGlassIcon } from "@phosphor-icons/react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
+import { CheckIcon, MagnifyingGlassIcon } from "@phosphor-icons/react"
 import { useOrders } from "@/context/OrderContext"
+import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import type { Order } from "@/types"
 import {
   STATUS_DOT,
   STATUS_LABEL,
@@ -14,8 +18,14 @@ import {
 } from "@/lib/orderDisplay"
 
 export function OutlineTable() {
-  const { orders } = useOrders()
+  const { orders, approveManager } = useOrders()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [query, setQuery] = useState("")
+  const [busyId, setBusyId] = useState<number | null>(null)
+
+  const isManagerOrAdmin = user?.role === 'MANAGER' || user?.role === 'ADMIN'
+  const ordersPath = user?.role === 'MANAGER' ? '/manager/orders' : '/admin/orders'
 
   const visibleOrders = useMemo(() => {
     const search = query.trim().toLowerCase()
@@ -29,6 +39,18 @@ export function OutlineTable() {
       ].some((value) => value.toLowerCase().includes(search)),
     )
   }, [orders, query])
+
+  const handleApprove = async (order: Order) => {
+    setBusyId(order.id)
+    try {
+      const updated = await approveManager(order.id)
+      toast.success(`Authorised. Permit ${updated.permit_id} issued.`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Approval failed.')
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   return (
     <Card className="mt-6 overflow-hidden border-outline-variant bg-surface-container-lowest shadow-level-1">
@@ -57,16 +79,50 @@ export function OutlineTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {visibleOrders.map((order) => (
-                <tr key={order.id} className="group transition-colors hover:bg-surface-container-low">
-                  <td className="px-6 py-5 font-mono text-sm font-bold text-[#7fb445]">{order.npa_reference_number}</td>
-                  <td className="px-6 py-5"><p className="font-medium text-[#102f71]">{order.product_type}</p><p className="mt-1 text-xs text-on-surface-variant">{customerName(order)} · {order.delivery_location ?? "—"}</p></td>
-                  <td className="px-6 py-5 font-medium text-[#102f71]">{formatQuantity(order)}</td>
-                  <td className="px-6 py-5"><span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-on-surface"><span className={`size-2 ${STATUS_DOT[order.status]}`} />{STATUS_LABEL[order.status]}</span></td>
-                  <td className="px-6 py-5 text-sm text-on-surface-variant">{formatDate(order.delivery_date)}, {formatTime(order.delivery_time)}</td>
-                  <td className="px-6 py-5 text-right"><Button variant="ghost" size="icon-xs" aria-label={`Actions for ${order.npa_reference_number}`} className="text-outline hover:bg-surface-container-high hover:text-[#102f71]"><DotsThreeVerticalIcon className="size-4" weight="bold" /></Button></td>
-                </tr>
-              ))}
+              {visibleOrders.map((order) => {
+                const canApprove = isManagerOrAdmin && (order.status === 'SUBMITTED' || order.status === 'ON_HOLD')
+                return (
+                  <tr key={order.id} className="group transition-colors hover:bg-surface-container-low">
+                    <td className="px-6 py-5 font-mono text-sm font-bold text-[#7fb445]">{order.npa_reference_number}</td>
+                    <td className="px-6 py-5"><p className="font-medium text-[#102f71]">{order.product_type}</p><p className="mt-1 text-xs text-on-surface-variant">{customerName(order)} · {order.delivery_location ?? "—"}</p></td>
+                    <td className="px-6 py-5 font-medium text-[#102f71]">{formatQuantity(order)}</td>
+                    <td className="px-6 py-5"><span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-on-surface"><span className={`size-2 ${STATUS_DOT[order.status]}`} />{STATUS_LABEL[order.status]}</span></td>
+                    <td className="px-6 py-5 text-sm text-on-surface-variant">{formatDate(order.delivery_date)}, {formatTime(order.delivery_time)}</td>
+                    <td className="px-6 py-5 text-right">
+                      {canApprove ? (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            disabled={busyId === order.id}
+                            className="bg-[#7fb445] text-xs text-white hover:bg-[#6f9e3d]"
+                            onClick={() => handleApprove(order)}
+                          >
+                            <CheckIcon className="mr-1 size-3.5" weight="bold" />
+                            Authorise
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                            onClick={() => navigate(ordersPath)}
+                          >
+                            Review
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-[#102f71] hover:bg-surface-container-high"
+                          onClick={() => navigate(ordersPath)}
+                        >
+                          View
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           {visibleOrders.length === 0 && <div className="p-10 text-center text-sm text-on-surface-variant">No orders match your search.</div>}

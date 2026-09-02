@@ -170,7 +170,11 @@ export function AdminOrders() {
                     const isExpanded = expandedOrderId === order.id;
                     const currentStep = progressStep(order.status);
                     const halted = isHalted(order.status);
-                    const canDecide = order.available_actions.includes('approve_manager');
+                    const canDecide =
+                      (order.status === 'SUBMITTED' || order.status === 'ON_HOLD') &&
+                      (order.available_actions?.length
+                        ? order.available_actions.includes('approve_manager')
+                        : true);
                     const reason = haltReason(order);
 
                     return (
@@ -414,6 +418,37 @@ export function AdminOrders() {
                                     </dl>
                                   </section>
                                 </div>
+
+                                {canDecide && (
+                                  <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#7fb445]/30 bg-[#7fb445]/10 p-4">
+                                    <div>
+                                      <p className="font-semibold text-[#102f71] text-sm">Manager Decision Required</p>
+                                      <p className="text-xs text-on-surface-variant">Review documents and pricing, then authorise to issue the permit or reject with a reason.</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        disabled={busyId === order.id}
+                                        className="bg-[#7fb445] text-xs text-white hover:bg-[#6f9e3d]"
+                                        onClick={() => handleApprove(order)}
+                                      >
+                                        <CheckIcon className="mr-1 size-3.5" weight="bold" />
+                                        Authorise &amp; Issue Permit
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="text-xs"
+                                        onClick={() => {
+                                          setRejectTarget(order);
+                                          setRejectReason('');
+                                        }}
+                                      >
+                                        Reject Order
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>
