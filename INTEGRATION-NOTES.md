@@ -184,3 +184,27 @@ These were out of scope but are worth queueing:
 - **`SECRET_KEY` is the committed dev key** and `backend/.env` is in the repo.
   Rotate the key and remove `.env` from version control before production.
 - **The frontend bundle is ~920 KB.** Route-level code splitting would help.
+
+---
+
+## 7. NPA Petroleum Product Standards & Purchase Order Conventions
+
+Aligned with live National Petroleum Authority (NPA) Purchase Orders and petroleum trade documentation:
+
+### Product Code Mappings (Official Database Keys)
+| Commercial Name | Official Code | Product Group | Use Case |
+|---|---|---|---|
+| Petrol / Gasoline | `PMS` (Premium Motor Spirit) | WHITE PRODUCT | Retail / Transport |
+| Diesel | `AGO` (Automotive Gas Oil) | WHITE PRODUCT | Retail / Transport |
+| Kerosene | `DPK` (Dual Purpose Kerosene) | WHITE PRODUCT | Retail / Domestic |
+| Jet Fuel | `ATK` (Aviation Turbine Kero) | WHITE PRODUCT | Aviation |
+| Marine Gas Oil | `MGO` (Marine Gas Oil) | WHITE PRODUCT | Shipping |
+
+### Key Implementation Principles
+- **Official Code as Database Key:** Stored internally as `AGO`, `PMS`, `DPK`, `ATK`, `MGO`.
+- **Normalization on Input:** Accepts commercial labels ("Diesel", "Petrol", etc.) or official codes via `normalize_product_code()`, guaranteeing idempotency and backward compatibility.
+- **Waybill / Receipt Specifications:**
+  - Product group standard: `WHITE PRODUCT`.
+  - Compartment configuration: default 4 BRV compartments across bulk haulage volumes (13,500 L – 45,000 L).
+  - Delivery station formatting (e.g., `Razs Oil Sorkpeyiri SS`).
+  - Strict compliance with multi-agency signature blocks (BOST Terminal Manager, GRA Customs, Transporter/Driver).

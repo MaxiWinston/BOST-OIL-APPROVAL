@@ -114,3 +114,59 @@ export const orderRef = (order: Order) => order.npa_reference_number;
 /** The reason an order is halted, whichever field holds it. */
 export const haltReason = (order: Order) =>
   order.rejection_reason || order.hold_reason || order.denial_reason || null;
+
+/** Official Ghanaian NPA Product Mapping Table */
+export const PRODUCT_OFFICIAL_CODES = {
+  AGO: {
+    code: 'AGO',
+    commercial: 'Diesel',
+    fullName: 'Automotive Gas Oil (Diesel)',
+    officialLabel: 'AGO (Automotive Gas Oil)',
+    group: 'WHITE PRODUCT',
+    useCase: 'Retail / Transport',
+  },
+  PMS: {
+    code: 'PMS',
+    commercial: 'Petrol',
+    fullName: 'Premium Motor Spirit (Petrol)',
+    officialLabel: 'PMS (Premium Motor Spirit)',
+    group: 'WHITE PRODUCT',
+    useCase: 'Retail / Transport',
+  },
+  DPK: {
+    code: 'DPK',
+    commercial: 'Kerosene',
+    fullName: 'Dual Purpose Kerosene (Kerosene)',
+    officialLabel: 'DPK (Dual Purpose Kerosene)',
+    group: 'WHITE PRODUCT',
+    useCase: 'Retail / Domestic',
+  },
+  ATK: {
+    code: 'ATK',
+    commercial: 'Jet Fuel',
+    fullName: 'Aviation Turbine Kerosene (Jet Fuel)',
+    officialLabel: 'ATK (Aviation Turbine Kerosene)',
+    group: 'WHITE PRODUCT',
+    useCase: 'Aviation',
+  },
+  MGO: {
+    code: 'MGO',
+    commercial: 'Marine',
+    fullName: 'Marine Gas Oil (Marine)',
+    officialLabel: 'MGO (Marine Gas Oil)',
+    group: 'WHITE PRODUCT',
+    useCase: 'Shipping',
+  },
+} as const;
+
+export const formatProduct = (order: Order) => {
+  if (order.product_display) return order.product_display;
+  const info = PRODUCT_OFFICIAL_CODES[order.product_type as keyof typeof PRODUCT_OFFICIAL_CODES];
+  if (info) return `${info.code} (${info.commercial})`;
+  return order.product_type;
+};
+
+export const formatProductGroup = (order: Order) => {
+  return order.product_group || 'WHITE PRODUCT';
+};
+

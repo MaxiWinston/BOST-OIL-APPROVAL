@@ -31,7 +31,8 @@ export function LoginForm({
       const user = await login(username, password)
       navigate(ROLE_HOME[user.role] ?? "/login", { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed")
+      const message = err instanceof Error ? err.message : "Sign in failed"
+      setError(message)
     } finally {
       setSubmitting(false)
     }

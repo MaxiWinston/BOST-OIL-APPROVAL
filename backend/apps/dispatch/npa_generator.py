@@ -22,7 +22,7 @@ OMC_COMPANIES = [
     'Shell Ghana',
 ]
 
-PRODUCT_TYPES = ['Diesel', 'Petrol', 'Kerosene', 'Crude', 'Super Gasoline']
+PRODUCT_TYPES = ['AGO', 'PMS', 'DPK', 'ATK', 'MGO']
 
 DRIVERS = [
     ('Kwesi Appiah', '+233 24 111 2233'),
@@ -36,11 +36,19 @@ DRIVERS = [
 ]
 
 LOCATIONS = [
+    'Razs Oil Sorkpeyiri SS',
     'Tema Harbour Terminal, Region 1',
     'Accra Plains Depot, Heavy Industrial Area',
     'Takoradi Port Oil Terminal',
     'Kumasi Central Depot, Ashanti Region',
     'Tamale Distribution Point, Northern Region',
+]
+
+STANDARD_BRV_VOLUMES = [
+    Decimal('13500.00'),
+    Decimal('27000.00'),
+    Decimal('36000.00'),
+    Decimal('45000.00'),
 ]
 
 PLATE_PREFIXES = ['GR', 'GT', 'AS', 'GW', 'GN', 'GX', 'GE']
@@ -90,8 +98,8 @@ def generate_npa_batch(count=None, depot_id=None, creator=None, target_date=None
     for i in range(1, count + 1):
         ref_num = f"NPA-{date_str}-{batch_id}-{i:03d}"
         product = random.choice(PRODUCT_TYPES)
-        unit = QuantityUnit.LITERS if random.random() > 0.15 else QuantityUnit.GALLONS
-        volume = Decimal(random.randint(100, 450)) * Decimal('100.00')  # 10,000 to 45,000
+        unit = QuantityUnit.LITERS if random.random() > 0.10 else QuantityUnit.GALLONS
+        volume = random.choice(STANDARD_BRV_VOLUMES)
         company = random.choice(OMC_COMPANIES)
         driver_name, driver_phone = random.choice(DRIVERS)
         truck_num = generate_random_truck_number()
@@ -113,6 +121,8 @@ def generate_npa_batch(count=None, depot_id=None, creator=None, target_date=None
         order = NPARequest.objects.create(
             npa_reference_number=ref_num,
             product_type=product,
+            product_group='WHITE PRODUCT',
+            compartments=4,
             volume_requested=volume,
             unit=unit,
             depot_id=depot_id,

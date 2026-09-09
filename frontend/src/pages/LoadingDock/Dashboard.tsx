@@ -14,7 +14,9 @@ import { Label } from '../../components/ui/label';
 import type { Order } from '../../types';
 import {
   STATUS_BADGE, STATUS_LABEL, formatDate, formatQuantity, num, customerName,
+  formatProduct, formatProductGroup,
 } from '../../lib/orderDisplay';
+import { Invoice } from '../../components/invoice/Invoice';
 
 /** Same normalisation the backend uses, so the preview matches the verdict. */
 const normalisePlate = (value: string) =>
@@ -32,6 +34,7 @@ export function LoadingDockDashboard() {
   const [observedPlate, setObservedPlate] = useState('');
   const [denyReason, setDenyReason] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [invoiceTarget, setInvoiceTarget] = useState<Order | null>(null);
 
   // Customs-cleared orders still need the lot authorised for filling.
   const awaitingClearance = useMemo(
@@ -189,7 +192,7 @@ export function LoadingDockDashboard() {
                     <div>
                       <p className="font-mono text-sm font-semibold">{order.npa_reference_number}</p>
                       <p className="mt-1 text-xs text-gray-600">
-                        {order.product_type} · {formatQuantity(order)} · {order.truck_number ?? '—'}
+                        {order.product_display || formatProduct(order)} · {formatProductGroup(order)} · {formatQuantity(order)} · {order.truck_number ?? '—'}
                       </p>
                     </div>
                     <Button
@@ -244,7 +247,7 @@ export function LoadingDockDashboard() {
                       <div className="mb-4 grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                         <div>
                           <p className="font-medium">Product</p>
-                          <p className="text-gray-600">{order.product_type}</p>
+                          <p className="text-gray-600">{order.product_display || formatProduct(order)} ({formatProductGroup(order)})</p>
                         </div>
                         <div>
                           <p className="font-medium">Approved quantity</p>
@@ -440,7 +443,14 @@ export function LoadingDockDashboard() {
               ))}
             </div>
           </section>
-        )}
+        {/* --- Waybill & Invoice Dialog ----------------------------- */}
+        <Dialog open={!!invoiceTarget} onOpenChange={(open) => !open && setInvoiceTarget(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-transparent shadow-2xl">
+            {invoiceTarget && (
+              <Invoice order={invoiceTarget} onClose={() => setInvoiceTarget(null)} />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

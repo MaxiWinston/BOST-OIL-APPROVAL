@@ -245,3 +245,45 @@ class TestFlowchartWorkflow:
         assert response.data['TOTAL'] == 2
         assert response.data['SUBMITTED'] == 1
         assert response.data['LOT_CLEARED'] == 1
+
+    def test_product_code_normalization_and_white_product_group(self):
+        self.client.force_authenticate(user=self.manager)
+
+        # 1. Submit using commercial name "Diesel" -> should normalize to official code "AGO"
+        res_diesel = self.client.post(reverse('npa-request-list'), {
+            'product_type': 'Diesel',
+            'volume_requested': '13500.00',
+            'unit': 'LITERS',
+            'truck_number': 'GR-1234-24',
+            'delivery_location': 'Razs Oil Sorkpeyiri SS',
+        }, format='json')
+        assert res_diesel.status_code == status.HTTP_201_CREATED
+        assert res_diesel.data['product_type'] == 'AGO'
+        assert res_diesel.data['product_name'] == 'Diesel'
+        assert res_diesel.data['product_display'] == 'AGO (Diesel)'
+        assert res_diesel.data['product_group'] == 'WHITE PRODUCT'
+        assert res_diesel.data['compartments'] == 4
+
+        # 2. Submit using official code "AGO" -> remains "AGO"
+        res_ago = self.client.post(reverse('npa-request-list'), {
+            'product_type': 'AGO',
+            'volume_requested': '27000.00',
+            'unit': 'LITERS',
+            'truck_number': 'GT-5678-24',
+        }, format='json')
+        assert res_ago.status_code == status.HTTP_201_CREATED
+        assert res_ago.data['product_type'] == 'AGO'
+        assert res_ago.data['product_group'] == 'WHITE PRODUCT'
+
+        # 3. Submit commercial name "Petrol" -> normalizes to "PMS"
+        res_pms = self.client.post(reverse('npa-request-list'), {
+            'product_type': 'Petrol',
+            'volume_requested': '10000.00',
+            'unit': 'LITERS',
+            'truck_number': 'AS-9999-24',
+        }, format='json')
+        assert res_pms.status_code == status.HTTP_201_CREATED
+        assert res_pms.data['product_type'] == 'PMS'
+        assert res_pms.data['product_name'] == 'Petrol'
+        assert res_pms.data['product_display'] == 'PMS (Petrol)'
+        assert res_pms.data['product_group'] == 'WHITE PRODUCT'

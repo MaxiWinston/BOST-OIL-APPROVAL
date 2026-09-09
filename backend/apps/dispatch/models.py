@@ -61,6 +61,72 @@ class QuantityUnit(models.TextChoices):
     GALLONS = 'GALLONS', 'Gallons'
 
 
+class ProductCode(models.TextChoices):
+    PMS = 'PMS', 'Premium Motor Spirit (Petrol)'
+    AGO = 'AGO', 'Automotive Gas Oil (Diesel)'
+    DPK = 'DPK', 'Dual Purpose Kerosene (Kerosene)'
+    ATK = 'ATK', 'Aviation Turbine Kerosene (Jet Fuel)'
+    MGO = 'MGO', 'Marine Gas Oil (Marine)'
+
+
+PRODUCT_COMMERCIAL_NAMES = {
+    'PMS': 'Petrol',
+    'AGO': 'Diesel',
+    'DPK': 'Kerosene',
+    'ATK': 'Jet Fuel',
+    'MGO': 'Marine',
+}
+
+PRODUCT_CODE_ALIASES = {
+    # Diesel / AGO
+    'diesel': 'AGO',
+    'ago': 'AGO',
+    'diesel ago': 'AGO',
+    'automotive gas oil': 'AGO',
+    'automotive gas oil (diesel)': 'AGO',
+    'ago (retail outlets)': 'AGO',
+    'ulsd': 'AGO',
+    'ulsd / diesel #2': 'AGO',
+    # Petrol / PMS
+    'petrol': 'PMS',
+    'pms': 'PMS',
+    'super gasoline': 'PMS',
+    'gasoline': 'PMS',
+    'premium motor spirit': 'PMS',
+    'premium motor spirit (petrol)': 'PMS',
+    # Kerosene / DPK
+    'kerosene': 'DPK',
+    'dpk': 'DPK',
+    'dual purpose kerosene': 'DPK',
+    'dual purpose kerosene (kerosene)': 'DPK',
+    # Jet Fuel / ATK
+    'jet fuel': 'ATK',
+    'atk': 'ATK',
+    'aviation turbine kerosene': 'ATK',
+    'aviation fuel': 'ATK',
+    # Marine / MGO
+    'marine': 'MGO',
+    'mgo': 'MGO',
+    'marine gas oil': 'MGO',
+}
+
+
+def normalize_product_code(value: str) -> str:
+    """
+    Normalizes a product name or code to its official Ghanaian NPA product code (e.g. AGO, PMS, DPK, ATK, MGO).
+    Accepts both commercial names ("Diesel", "Petrol") and official codes ("AGO", "PMS").
+    """
+    if not value:
+        return 'AGO'
+    clean_val = str(value).strip().lower()
+    return PRODUCT_CODE_ALIASES.get(clean_val, str(value).strip().upper())
+
+
+def get_product_group(product_code: str) -> str:
+    """Returns the official NPA product group. Refined fuels are WHITE PRODUCT."""
+    return 'WHITE PRODUCT'
+
+
 class NPARequestStatus(models.TextChoices):
     # --- Flowchart stage 1: customer company ---
     SUBMITTED = 'SUBMITTED', 'Submitted (Pending Manager)'
@@ -83,7 +149,19 @@ ALL_NPA_STATUSES = [choice[0] for choice in NPARequestStatus.choices]
 
 class NPARequest(models.Model):
     npa_reference_number = models.CharField(max_length=100, unique=True)
-    product_type = models.CharField(max_length=50)
+    product_type = models.CharField(
+        max_length=50,
+        help_text="Official NPA product code (AGO, PMS, DPK, ATK, MGO)."
+    )
+    product_group = models.CharField(
+        max_length=50,
+        default='WHITE PRODUCT',
+        help_text="NPA Product Group (e.g. WHITE PRODUCT for refined fuels)."
+    )
+    compartments = models.PositiveSmallIntegerField(
+        default=4,
+        help_text="Number of BRV tanker compartments."
+    )
     volume_requested = models.DecimalField(max_digits=12, decimal_places=2)
     unit = models.CharField(
         max_length=10,
@@ -242,7 +320,7 @@ class NPARequest(models.Model):
         ]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(status__in=ALL_NPA_STATUSES),
+                condition=models.Q(status__in=ALL_NPA_STATUSES),
                 name='valid_npa_status_check'
             )
         ]
@@ -259,6 +337,26 @@ class NPARequest(models.Model):
                 raise ValidationError("Lot clearance requires prior Manager approval.")
             if not self.approved_by_customs:
                 raise ValidationError("Lot clearance requires prior Customs approval.")
+
+    def save(self, *args, **kwargs):
+        if self.product_type:
+            self.product_type = normalize_product_code(self.product_type)
+        if not self.product_group:
+            self.product_group = get_product_group(self.product_type)
+        super().save(*args, **kwargs)
+
+    @property
+    def product_name(self):
+        """Returns the commercial name for the product code (e.g. 'Diesel' for 'AGO')."""
+        return PRODUCT_COMMERCIAL_NAMES.get(self.product_type, self.product_type)
+
+    @property
+    def product_display(self):
+        """Returns official code with commercial designation, e.g. 'AGO (Diesel)'."""
+        comm = self.product_name
+        if comm and comm != self.product_type:
+            return f"{self.product_type} ({comm})"
+        return self.product_type
 
     @property
     def car_number_matches(self):

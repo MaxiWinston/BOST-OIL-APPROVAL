@@ -52,9 +52,11 @@ export function AdminUsers() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    refreshUsers().catch((err) =>
-      setLoadError(err instanceof Error ? err.message : 'Could not load users.'),
-    );
+    refreshUsers().catch((err) => {
+      const message = err instanceof Error ? err.message : 'Could not load users.'
+      setLoadError(message)
+      toast.error(message)
+    });
   }, [refreshUsers]);
 
   const filteredUsers = useMemo(() => {

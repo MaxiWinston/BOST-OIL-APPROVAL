@@ -3,12 +3,15 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
-import type { Order, OrderStatus, CreateOrderPayload, OrderSummary } from '../types';
+import { toast } from 'sonner';
+import type { Order, OrderStatus, CreateOrderPayload, OrderSummary, UserRole } from '../types';
 import { orderApi } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { STATUS_LABEL } from '../lib/orderDisplay';
 
 interface OrderContextType {
   orders: Order[];
@@ -41,17 +44,46 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
+const incomingStatuses: Record<UserRole, OrderStatus[]> = {
+  MANAGER: ['SUBMITTED', 'ON_HOLD', 'DENIED', 'COMPLETED'],
+  CUSTOMS_OFFICER: ['MANAGER_APPROVED'],
+  DEPOT_OPERATOR: ['CUSTOMS_APPROVED', 'LOT_CLEARED'],
+  ADMIN: ['SUBMITTED', 'ON_HOLD', 'MANAGER_APPROVED', 'CUSTOMS_APPROVED', 'LOT_CLEARED', 'LOADING', 'COMPLETED', 'DENIED'],
+};
+
 export function OrderProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [summary, setSummary] = useState<OrderSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const previousOrders = useRef<Map<number, OrderStatus> | null>(null);
+  const suppressedNotifications = useRef(new Set<string>());
+
+  const notifyIncomingTasks = useCallback((nextOrders: Order[]) => {
+    const previous = previousOrders.current;
+    if (!previous || !userRole) {
+      previousOrders.current = new Map(nextOrders.map((order) => [order.id, order.status]));
+      return;
+    }
+
+    const allowedStatuses = incomingStatuses[userRole];
+    nextOrders.forEach((order) => {
+      const key = `${order.id}:${order.status}`;
+      const oldStatus = previous.get(order.id);
+      const isNewTask = allowedStatuses.includes(order.status) && oldStatus !== order.status;
+      if (isNewTask && !suppressedNotifications.current.delete(key)) {
+        toast.info(`${order.npa_reference_number} is now ${STATUS_LABEL[order.status]}.`);
+      }
+    });
+    previousOrders.current = new Map(nextOrders.map((order) => [order.id, order.status]));
+  }, [userRole]);
 
   const refresh = useCallback(async (isBackground = false) => {
     if (!isAuthenticated) {
       setOrders([]);
       setSummary(null);
+      previousOrders.current = null;
       return;
     }
 
@@ -61,6 +93,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
     try {
       const [page, counts] = await Promise.all([orderApi.list(), orderApi.summary()]);
+      notifyIncomingTasks(page.results);
       setOrders(page.results);
       setSummary(counts);
     } catch (err) {
@@ -72,7 +105,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, notifyIncomingTasks]);
 
   // Load whenever the session changes & automatically poll for new daily orders
   useEffect(() => {
@@ -88,6 +121,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   /** Splice an updated order back into local state without a full refetch. */
   const applyUpdate = useCallback((updated: Order) => {
+    suppressedNotifications.current.add(`${updated.id}:${updated.status}`);
     setOrders((prev) => prev.map((order) => (order.id === updated.id ? updated : order)));
     // Status counts changed, so pull fresh totals in the background.
     orderApi.summary().then(setSummary).catch(() => undefined);
@@ -96,6 +130,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const addOrder = useCallback(async (payload: CreateOrderPayload) => {
     const created = await orderApi.create(payload);
+    suppressedNotifications.current.add(`${created.id}:${created.status}`);
     setOrders((prev) => [created, ...prev]);
     orderApi.summary().then(setSummary).catch(() => undefined);
     return created;

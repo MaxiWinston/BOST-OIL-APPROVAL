@@ -12,6 +12,17 @@ _last_processed_date = None
 _lock = threading.Lock()
 
 
+def get_seconds_until_next_5am(now=None):
+    """
+    Returns the number of seconds until the next 5:00 AM dispatch cycle.
+    """
+    now = now or datetime.now()
+    target = now.replace(hour=5, minute=0, second=0, microsecond=0)
+    if now >= target:
+        target += timedelta(days=1)
+    return (target - now).total_seconds()
+
+
 def has_orders_for_date(target_date=None, depot_id=None):
     from apps.dispatch.models import NPARequest
     target_date = target_date or date.today()

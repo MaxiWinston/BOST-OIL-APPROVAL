@@ -33,14 +33,14 @@ DEMO_USERS = [
 ]
 
 DEMO_ORDERS = [
-    # product,     volume,  unit,                    truck,        driver,        target stage
-    ('Diesel', 30000, QuantityUnit.LITERS, 'GR-4521-24', 'Kwesi Appiah', 'submitted'),
-    ('Petrol', 25000, QuantityUnit.LITERS, 'GT-8890-23', 'Musah Ibrahim', 'manager_approved'),
-    ('Kerosene', 18000, QuantityUnit.LITERS, 'AS-1177-25', 'Daniel Osei', 'customs_approved'),
-    ('Diesel', 40000, QuantityUnit.LITERS, 'GW-6543-24', 'Peter Nkrumah', 'lot_cleared'),
-    ('Petrol', 22000, QuantityUnit.LITERS, 'GN-3321-22', 'Samuel Tetteh', 'completed'),
-    ('Crude', 35000, QuantityUnit.LITERS, 'GX-9087-24', 'Isaac Danso', 'on_hold'),
-    ('Diesel', 15000, QuantityUnit.LITERS, 'GE-2244-23', 'Felix Amoah', 'rejected'),
+    # product, volume,  unit,                    truck,        driver,        target stage, location
+    ('AGO', 13500, QuantityUnit.LITERS, 'GR-4521-24', 'Kwesi Appiah', 'submitted', 'Razs Oil Sorkpeyiri SS'),
+    ('PMS', 27000, QuantityUnit.LITERS, 'GT-8890-23', 'Musah Ibrahim', 'manager_approved', 'Accra Central Service Station'),
+    ('DPK', 18000, QuantityUnit.LITERS, 'AS-1177-25', 'Daniel Osei', 'customs_approved', 'Tema Harbour Terminal, Region 1'),
+    ('AGO', 36000, QuantityUnit.LITERS, 'GW-6543-24', 'Peter Nkrumah', 'lot_cleared', 'Takoradi Port Oil Terminal'),
+    ('PMS', 22000, QuantityUnit.LITERS, 'GN-3321-22', 'Samuel Tetteh', 'completed', 'Kumasi Central Depot, Ashanti Region'),
+    ('ATK', 35000, QuantityUnit.LITERS, 'GX-9087-24', 'Isaac Danso', 'on_hold', 'Kotoka International Airport Aviation Depot'),
+    ('MGO', 15000, QuantityUnit.LITERS, 'GE-2244-23', 'Felix Amoah', 'rejected', 'Tema Fishing Harbour Bunkering Quay'),
 ]
 
 
@@ -99,7 +99,9 @@ class Command(BaseCommand):
         return users
 
     def _create_tankers(self):
-        for _, _, _, truck, driver, _ in DEMO_ORDERS:
+        for item in DEMO_ORDERS:
+            truck = item[3]
+            driver = item[4]
             Tanker.objects.get_or_create(
                 truck_number=truck,
                 defaults={
@@ -112,7 +114,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Tankers ready ({Tanker.objects.count()} total)')
 
     def _create_lots(self):
-        for index, product in enumerate(['Diesel', 'Petrol', 'Kerosene', 'Crude'], start=1):
+        for index, product in enumerate(['AGO', 'PMS', 'DPK', 'ATK', 'MGO'], start=1):
             Lot.objects.get_or_create(
                 lot_number=f'LOT-{DEPOT}-{index:03d}',
                 defaults={
@@ -129,7 +131,14 @@ class Command(BaseCommand):
         customs = users[RoleChoices.CUSTOMS_OFFICER]
         operator = users[RoleChoices.DEPOT_OPERATOR]
 
-        for index, (product, volume, unit, truck, driver, stage) in enumerate(DEMO_ORDERS, start=1):
+        for index, item in enumerate(DEMO_ORDERS, start=1):
+            product = item[0]
+            volume = item[1]
+            unit = item[2]
+            truck = item[3]
+            driver = item[4]
+            stage = item[5]
+            location = item[6] if len(item) > 6 else f'{index} Harbour Road, Tema, Ghana'
             reference = f'NPA-DEMO-{index:03d}'
             if NPARequest.objects.filter(npa_reference_number=reference).exists():
                 self.stdout.write(f'Order {reference} already exists, skipping.')
@@ -139,13 +148,15 @@ class Command(BaseCommand):
             order = NPARequest.objects.create(
                 npa_reference_number=reference,
                 product_type=product,
+                product_group='WHITE PRODUCT',
+                compartments=4,
                 volume_requested=Decimal(volume),
                 unit=unit,
                 depot_id=DEPOT,
                 customer_company='Acme Oil Ghana Ltd',
                 delivery_date=date.today() + timedelta(days=index),
                 delivery_time=time(hour=8 + (index % 8)),
-                delivery_location=f'{index} Harbour Road, Tema, Ghana',
+                delivery_location=location,
                 contact_name='John Mensah',
                 contact_phone='+233 20 000 0000',
                 contact_email='john.mensah@example.com',

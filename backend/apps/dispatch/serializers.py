@@ -8,23 +8,39 @@ from apps.users.serializers import UserSerializer
 from .models import (
     Tanker, Lot, NPARequest, NPARequestStatus, QuantityUnit,
     DeliveryNote, Waybill, DispatchRequest,
+    normalize_product_code, get_product_group,
 )
 
 # Indicative rates used to price an order at submission time.
-# Keyed by lowercase product type, then by unit.
+# Keyed by lowercase official code or commercial product type, then by unit.
 PRICING_RATES = {
+    # Diesel / AGO
+    'ago': {'GALLONS': Decimal('3.50'), 'LITERS': Decimal('0.92')},
+    'diesel': {'GALLONS': Decimal('3.50'), 'LITERS': Decimal('0.92')},
+    # Petrol / PMS
+    'pms': {'GALLONS': Decimal('3.20'), 'LITERS': Decimal('0.85')},
+    'petrol': {'GALLONS': Decimal('3.20'), 'LITERS': Decimal('0.85')},
+    # Kerosene / DPK
+    'dpk': {'GALLONS': Decimal('2.80'), 'LITERS': Decimal('0.74')},
+    'kerosene': {'GALLONS': Decimal('2.80'), 'LITERS': Decimal('0.74')},
+    # Jet Fuel / ATK
+    'atk': {'GALLONS': Decimal('3.70'), 'LITERS': Decimal('0.98')},
+    'jet fuel': {'GALLONS': Decimal('3.70'), 'LITERS': Decimal('0.98')},
+    # Marine / MGO
+    'mgo': {'GALLONS': Decimal('3.30'), 'LITERS': Decimal('0.88')},
+    'marine': {'GALLONS': Decimal('3.30'), 'LITERS': Decimal('0.88')},
+    # Crude & refined generic
     'crude': {'GALLONS': Decimal('2.50'), 'LITERS': Decimal('0.66')},
     'refined': {'GALLONS': Decimal('3.00'), 'LITERS': Decimal('0.79')},
-    'diesel': {'GALLONS': Decimal('3.50'), 'LITERS': Decimal('0.92')},
-    'petrol': {'GALLONS': Decimal('3.20'), 'LITERS': Decimal('0.85')},
-    'kerosene': {'GALLONS': Decimal('2.80'), 'LITERS': Decimal('0.74')},
 }
 DEFAULT_RATE = {'GALLONS': Decimal('3.00'), 'LITERS': Decimal('0.79')}
 
 
 def calculate_pricing(product_type, quantity, unit):
     """Return (price_per_unit, total_price) for an order line."""
-    rates = PRICING_RATES.get(str(product_type).strip().lower(), DEFAULT_RATE)
+    norm_code = normalize_product_code(product_type).lower() if product_type else ''
+    clean_type = str(product_type).strip().lower() if product_type else ''
+    rates = PRICING_RATES.get(norm_code, PRICING_RATES.get(clean_type, DEFAULT_RATE))
     per_unit = rates.get(unit, DEFAULT_RATE['LITERS'])
     total = (Decimal(str(quantity)) * per_unit).quantize(Decimal('0.01'))
     return per_unit, total
@@ -80,6 +96,8 @@ class NPARequestSerializer(serializers.ModelSerializer):
     loaded_by = UserSerializer(read_only=True)
 
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    product_name = serializers.CharField(read_only=True)
+    product_display = serializers.CharField(read_only=True)
     car_number_matches = serializers.BooleanField(read_only=True)
     waybill_number = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
@@ -88,7 +106,8 @@ class NPARequestSerializer(serializers.ModelSerializer):
         model = NPARequest
         fields = [
             'id', 'npa_reference_number', 'permit_id',
-            'product_type', 'volume_requested', 'unit', 'depot_id',
+            'product_type', 'product_name', 'product_display', 'product_group',
+            'volume_requested', 'unit', 'compartments', 'depot_id',
             'status', 'status_display',
             # Order details
             'customer_company', 'delivery_date', 'delivery_time', 'delivery_location',
@@ -154,16 +173,24 @@ class NPARequestCreateSerializer(serializers.ModelSerializer):
     # the model, so they must be declared optional explicitly here.
     npa_reference_number = serializers.CharField(required=False, allow_blank=True)
     depot_id = serializers.CharField(required=False, allow_blank=True)
+    product_group = serializers.CharField(required=False, default='WHITE PRODUCT')
+    compartments = serializers.IntegerField(required=False, default=4)
 
     class Meta:
         model = NPARequest
         fields = [
-            'id', 'npa_reference_number', 'product_type', 'volume_requested', 'unit',
+            'id', 'npa_reference_number', 'product_type', 'product_group',
+            'volume_requested', 'unit', 'compartments',
             'depot_id', 'customer_company', 'delivery_date', 'delivery_time',
             'delivery_location', 'contact_name', 'contact_phone', 'contact_email',
             'truck_number', 'driver_name', 'driver_phone', 'tanker',
         ]
         read_only_fields = ['id']
+
+    def validate_product_type(self, value):
+        if not value:
+            raise serializers.ValidationError("Product type is required.")
+        return normalize_product_code(value)
 
     def validate_volume_requested(self, value):
         if value is None or value <= 0:
@@ -190,6 +217,12 @@ class NPARequestCreateSerializer(serializers.ModelSerializer):
 
         if not validated_data.get('customer_company'):
             validated_data['customer_company'] = getattr(user, 'company_name', None)
+
+        if not validated_data.get('product_group'):
+            validated_data['product_group'] = get_product_group(validated_data.get('product_type'))
+
+        if not validated_data.get('compartments'):
+            validated_data['compartments'] = 4
 
         per_unit, total = calculate_pricing(
             validated_data.get('product_type'),

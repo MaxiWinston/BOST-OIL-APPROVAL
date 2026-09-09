@@ -25,7 +25,9 @@ import type { Order, OrderStatus } from '../../types';
 import {
   STATUS_DOT, STATUS_LABEL, PROGRESS_STAGES, progressStep, isHalted,
   formatDate, formatTime, formatQuantity, formatMoney, customerName, haltReason,
+  formatProduct, formatProductGroup,
 } from '../../lib/orderDisplay';
+import { Invoice } from '../../components/invoice/Invoice';
 
 const ALL_STATUSES = Object.keys(STATUS_LABEL) as OrderStatus[];
 
@@ -37,6 +39,7 @@ export function AdminOrders() {
   const [busyId, setBusyId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectTarget, setRejectTarget] = useState<Order | null>(null);
+  const [invoiceTarget, setInvoiceTarget] = useState<Order | null>(null);
 
   const filteredOrders = useMemo(() => {
     const search = query.trim().toLowerCase();
@@ -194,7 +197,12 @@ export function AdminOrders() {
                             </p>
                           </td>
                           <td className="px-5 py-4">
-                            <p className="font-medium text-[#102f71]">{order.product_type}</p>
+                            <p className="font-medium text-[#102f71]">
+                              {order.product_display || formatProduct(order)}
+                              <span className="ml-2 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                                {formatProductGroup(order)}
+                              </span>
+                            </p>
                             <p className="mt-1 text-xs text-on-surface-variant">
                               {customerName(order)} · {order.delivery_location ?? '—'}
                             </p>
@@ -371,8 +379,14 @@ export function AdminOrders() {
                                         <div>
                                           <dt className="text-on-surface-variant">Product &amp; quantity</dt>
                                           <dd className="mt-0.5 font-medium text-[#102f71]">
-                                            {order.product_type} · {formatQuantity(order)}
+                                            {order.product_display || formatProduct(order)} · {formatQuantity(order)}
+                                            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                                              {formatProductGroup(order)}
+                                            </span>
                                           </dd>
+                                          <p className="mt-0.5 text-[11px] text-slate-500">
+                                            BRV Configuration: {order.compartments ?? 4} compartments
+                                          </p>
                                         </div>
                                       </div>
                                       <div className="flex gap-3">
@@ -419,13 +433,21 @@ export function AdminOrders() {
                                   </section>
                                 </div>
 
-                                {canDecide && (
+                                {canDecide ? (
                                   <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#7fb445]/30 bg-[#7fb445]/10 p-4">
                                     <div>
                                       <p className="font-semibold text-[#102f71] text-sm">Manager Decision Required</p>
                                       <p className="text-xs text-on-surface-variant">Review documents and pricing, then authorise to issue the permit or reject with a reason.</p>
                                     </div>
                                     <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-xs text-[#102f71] border-[#102f71]/30 hover:bg-[#102f71]/5"
+                                        onClick={() => setInvoiceTarget(order)}
+                                      >
+                                        View Manifest / Receipt
+                                      </Button>
                                       <Button
                                         size="sm"
                                         disabled={busyId === order.id}
@@ -447,6 +469,17 @@ export function AdminOrders() {
                                         Reject Order
                                       </Button>
                                     </div>
+                                  </div>
+                                ) : (
+                                  <div className="mt-6 flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-xs text-[#102f71] border-[#102f71]/30 hover:bg-[#102f71]/5"
+                                      onClick={() => setInvoiceTarget(order)}
+                                    >
+                                      View Waybill / Receipt
+                                    </Button>
                                   </div>
                                 )}
                               </div>
@@ -470,6 +503,15 @@ export function AdminOrders() {
               <span className="font-mono uppercase tracking-wide">Depot manager review queue</span>
             </footer>
           </section>
+
+          {/* Official Waybill / Receipt Dialog */}
+          <Dialog open={!!invoiceTarget} onOpenChange={(open) => !open && setInvoiceTarget(null)}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-transparent shadow-2xl">
+              {invoiceTarget && (
+                <Invoice order={invoiceTarget} onClose={() => setInvoiceTarget(null)} />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </main>
     </div>
