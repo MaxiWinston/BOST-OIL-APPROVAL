@@ -141,22 +141,6 @@ export const PRODUCT_OFFICIAL_CODES = {
     group: 'WHITE PRODUCT',
     useCase: 'Retail / Domestic',
   },
-  ATK: {
-    code: 'ATK',
-    commercial: 'Jet Fuel',
-    fullName: 'Aviation Turbine Kerosene (Jet Fuel)',
-    officialLabel: 'ATK (Aviation Turbine Kerosene)',
-    group: 'WHITE PRODUCT',
-    useCase: 'Aviation',
-  },
-  MGO: {
-    code: 'MGO',
-    commercial: 'Marine',
-    fullName: 'Marine Gas Oil (Marine)',
-    officialLabel: 'MGO (Marine Gas Oil)',
-    group: 'WHITE PRODUCT',
-    useCase: 'Shipping',
-  },
 } as const;
 
 export const formatProduct = (order: Order) => {

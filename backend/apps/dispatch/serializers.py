@@ -23,12 +23,6 @@ PRICING_RATES = {
     # Kerosene / DPK
     'dpk': {'GALLONS': Decimal('2.80'), 'LITERS': Decimal('0.74')},
     'kerosene': {'GALLONS': Decimal('2.80'), 'LITERS': Decimal('0.74')},
-    # Jet Fuel / ATK
-    'atk': {'GALLONS': Decimal('3.70'), 'LITERS': Decimal('0.98')},
-    'jet fuel': {'GALLONS': Decimal('3.70'), 'LITERS': Decimal('0.98')},
-    # Marine / MGO
-    'mgo': {'GALLONS': Decimal('3.30'), 'LITERS': Decimal('0.88')},
-    'marine': {'GALLONS': Decimal('3.30'), 'LITERS': Decimal('0.88')},
     # Crude & refined generic
     'crude': {'GALLONS': Decimal('2.50'), 'LITERS': Decimal('0.66')},
     'refined': {'GALLONS': Decimal('3.00'), 'LITERS': Decimal('0.79')},

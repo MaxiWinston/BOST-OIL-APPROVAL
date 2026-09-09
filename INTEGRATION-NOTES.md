@@ -197,11 +197,9 @@ Aligned with live National Petroleum Authority (NPA) Purchase Orders and petrole
 | Petrol / Gasoline | `PMS` (Premium Motor Spirit) | WHITE PRODUCT | Retail / Transport |
 | Diesel | `AGO` (Automotive Gas Oil) | WHITE PRODUCT | Retail / Transport |
 | Kerosene | `DPK` (Dual Purpose Kerosene) | WHITE PRODUCT | Retail / Domestic |
-| Jet Fuel | `ATK` (Aviation Turbine Kero) | WHITE PRODUCT | Aviation |
-| Marine Gas Oil | `MGO` (Marine Gas Oil) | WHITE PRODUCT | Shipping |
 
 ### Key Implementation Principles
-- **Official Code as Database Key:** Stored internally as `AGO`, `PMS`, `DPK`, `ATK`, `MGO`.
+- **Official Code as Database Key:** Stored internally as `AGO`, `PMS`, `DPK`.
 - **Normalization on Input:** Accepts commercial labels ("Diesel", "Petrol", etc.) or official codes via `normalize_product_code()`, guaranteeing idempotency and backward compatibility.
 - **Waybill / Receipt Specifications:**
   - Product group standard: `WHITE PRODUCT`.

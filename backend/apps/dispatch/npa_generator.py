@@ -22,7 +22,7 @@ OMC_COMPANIES = [
     'Shell Ghana',
 ]
 
-PRODUCT_TYPES = ['AGO', 'PMS', 'DPK', 'ATK', 'MGO']
+PRODUCT_TYPES = ['AGO', 'PMS', 'DPK']
 
 DRIVERS = [
     ('Kwesi Appiah', '+233 24 111 2233'),

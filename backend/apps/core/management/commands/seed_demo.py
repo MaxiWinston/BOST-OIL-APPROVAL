@@ -39,8 +39,8 @@ DEMO_ORDERS = [
     ('DPK', 18000, QuantityUnit.LITERS, 'AS-1177-25', 'Daniel Osei', 'customs_approved', 'Tema Harbour Terminal, Region 1'),
     ('AGO', 36000, QuantityUnit.LITERS, 'GW-6543-24', 'Peter Nkrumah', 'lot_cleared', 'Takoradi Port Oil Terminal'),
     ('PMS', 22000, QuantityUnit.LITERS, 'GN-3321-22', 'Samuel Tetteh', 'completed', 'Kumasi Central Depot, Ashanti Region'),
-    ('ATK', 35000, QuantityUnit.LITERS, 'GX-9087-24', 'Isaac Danso', 'on_hold', 'Kotoka International Airport Aviation Depot'),
-    ('MGO', 15000, QuantityUnit.LITERS, 'GE-2244-23', 'Felix Amoah', 'rejected', 'Tema Fishing Harbour Bunkering Quay'),
+    ('AGO', 35000, QuantityUnit.LITERS, 'GX-9087-24', 'Isaac Danso', 'on_hold', 'Tamale Regional Depot, Northern Region'),
+    ('PMS', 15000, QuantityUnit.LITERS, 'GE-2244-23', 'Felix Amoah', 'rejected', 'Buipe Bulk Inland Terminal'),
 ]
 
 
@@ -114,7 +114,7 @@ class Command(BaseCommand):
         self.stdout.write(f'Tankers ready ({Tanker.objects.count()} total)')
 
     def _create_lots(self):
-        for index, product in enumerate(['AGO', 'PMS', 'DPK', 'ATK', 'MGO'], start=1):
+        for index, product in enumerate(['AGO', 'PMS', 'DPK'], start=1):
             Lot.objects.get_or_create(
                 lot_number=f'LOT-{DEPOT}-{index:03d}',
                 defaults={

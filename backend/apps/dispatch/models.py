@@ -65,16 +65,12 @@ class ProductCode(models.TextChoices):
     PMS = 'PMS', 'Premium Motor Spirit (Petrol)'
     AGO = 'AGO', 'Automotive Gas Oil (Diesel)'
     DPK = 'DPK', 'Dual Purpose Kerosene (Kerosene)'
-    ATK = 'ATK', 'Aviation Turbine Kerosene (Jet Fuel)'
-    MGO = 'MGO', 'Marine Gas Oil (Marine)'
 
 
 PRODUCT_COMMERCIAL_NAMES = {
     'PMS': 'Petrol',
     'AGO': 'Diesel',
     'DPK': 'Kerosene',
-    'ATK': 'Jet Fuel',
-    'MGO': 'Marine',
 }
 
 PRODUCT_CODE_ALIASES = {
@@ -99,21 +95,12 @@ PRODUCT_CODE_ALIASES = {
     'dpk': 'DPK',
     'dual purpose kerosene': 'DPK',
     'dual purpose kerosene (kerosene)': 'DPK',
-    # Jet Fuel / ATK
-    'jet fuel': 'ATK',
-    'atk': 'ATK',
-    'aviation turbine kerosene': 'ATK',
-    'aviation fuel': 'ATK',
-    # Marine / MGO
-    'marine': 'MGO',
-    'mgo': 'MGO',
-    'marine gas oil': 'MGO',
 }
 
 
 def normalize_product_code(value: str) -> str:
     """
-    Normalizes a product name or code to its official Ghanaian NPA product code (e.g. AGO, PMS, DPK, ATK, MGO).
+    Normalizes a product name or code to its official Ghanaian NPA product code (e.g. AGO, PMS, DPK).
     Accepts both commercial names ("Diesel", "Petrol") and official codes ("AGO", "PMS").
     """
     if not value:
@@ -151,7 +138,7 @@ class NPARequest(models.Model):
     npa_reference_number = models.CharField(max_length=100, unique=True)
     product_type = models.CharField(
         max_length=50,
-        help_text="Official NPA product code (AGO, PMS, DPK, ATK, MGO)."
+        help_text="Official NPA product code (AGO, PMS, DPK)."
     )
     product_group = models.CharField(
         max_length=50,

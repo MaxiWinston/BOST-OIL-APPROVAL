@@ -27,7 +27,7 @@ export interface User {
 export type QuantityUnit = 'LITERS' | 'GALLONS';
 
 /** Official Ghanaian NPA Product Codes for White Products */
-export type ProductCode = 'PMS' | 'AGO' | 'DPK' | 'ATK' | 'MGO';
+export type ProductCode = 'PMS' | 'AGO' | 'DPK';
 
 /** Mirrors NPARequestStatus in apps/dispatch/models.py */
 export type OrderStatus =
@@ -58,7 +58,7 @@ export interface Order {
   npa_reference_number: string;
   permit_id: string | null;
 
-  product_type: string; // Official NPA code: AGO, PMS, DPK, ATK, MGO
+  product_type: string; // Official NPA code: AGO, PMS, DPK
   product_name?: string; // Commercial name: Diesel, Petrol, etc.
   product_display?: string; // e.g. "AGO (Diesel)"
   product_group?: string; // e.g. "WHITE PRODUCT"
