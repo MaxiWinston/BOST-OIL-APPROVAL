@@ -443,6 +443,8 @@ export function LoadingDockDashboard() {
               ))}
             </div>
           </section>
+        )}
+
         {/* --- Waybill & Invoice Dialog ----------------------------- */}
         <Dialog open={!!invoiceTarget} onOpenChange={(open) => !open && setInvoiceTarget(null)}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-transparent shadow-2xl">
