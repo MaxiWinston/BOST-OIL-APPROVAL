@@ -93,6 +93,7 @@ export function LoginForm({
           <div className="mt-4 text-sm text-[#102f71]">
             <p className="font-medium mb-2">Demo credentials (password: Password123!):</p>
             <div className="space-y-1 text-xs">
+              <p>Customer Company: customer</p>
               <p>Depot Manager: manager</p>
               <p>Customs Officer: customs</p>
               <p>Loading Bay: dock</p>
