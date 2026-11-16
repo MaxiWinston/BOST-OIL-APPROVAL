@@ -118,7 +118,7 @@
   },
   {
     "id": 14,
-    "header": "Customer Feedback and Satisfaction Levels",
+    "header": "OMC Feedback and Satisfaction Levels",
     "type": "Narrative",
     "status": "Done",
     "target": "15",
@@ -406,7 +406,7 @@
   },
   {
     "id": 46,
-    "header": "Customer Support Framework",
+    "header": "OMC Support Framework",
     "type": "Narrative",
     "status": "Done",
     "target": "22",

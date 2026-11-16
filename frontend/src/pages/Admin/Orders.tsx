@@ -133,7 +133,7 @@ export function AdminOrders() {
                   <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
                   <Input
                     className="h-9 bg-white pl-9 text-sm"
-                    placeholder="Search reference, customer, plate…"
+                    placeholder="Search reference, OMC, plate…"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -161,7 +161,7 @@ export function AdminOrders() {
                 <thead className="border-b border-outline-variant bg-surface-container-low">
                   <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">
                     <th className="px-5 py-3">Reference</th>
-                    <th className="px-5 py-3">Product / Customer</th>
+                    <th className="px-5 py-3">Product / OMC</th>
                     <th className="px-5 py-3">Quantity</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3">Vehicle</th>

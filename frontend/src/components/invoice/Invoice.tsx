@@ -82,11 +82,11 @@ export function Invoice({ order, onClose }: InvoiceProps) {
           </div>
         </div>
 
-        {/* Customer / Consignee & Delivery Point */}
+        {/* OMC / Consignee & Delivery Point */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div className="border border-slate-200 rounded p-4">
             <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Consignee / Customer OMC
+              Consignee / OMC
             </h2>
             <p className="text-base font-bold text-[#102f71]">{order.customer_company ?? 'Commercial OMC'}</p>
             <p className="text-xs text-slate-600 mt-1">Contact: {order.contact_name ?? 'Operations Officer'}</p>

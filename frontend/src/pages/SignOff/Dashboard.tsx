@@ -138,7 +138,7 @@ export function SignOffDashboard() {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
-                    {['Reference', 'Permit', 'Customer', 'Product', 'Quantity', 'Value', 'Status', 'Action'].map((heading) => (
+                    {['Reference', 'Permit', 'OMC', 'Product', 'Quantity', 'Value', 'Status', 'Action'].map((heading) => (
                       <th
                         key={heading}
                         className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#102f71]"
@@ -208,7 +208,7 @@ export function SignOffDashboard() {
                                     <p>{order.approved_by_manager?.name ?? '—'}</p>
                                   </div>
                                   <div>
-                                    <p className="font-medium">Customer</p>
+                                    <p className="font-medium">OMC</p>
                                     <p>{customerName(order)}</p>
                                   </div>
                                   <div>

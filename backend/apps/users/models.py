@@ -33,7 +33,7 @@ class User(AbstractUser):
         max_length=150,
         blank=True,
         null=True,
-        help_text="Customer company this user belongs to (customers only)."
+        help_text="Company or OMC this user belongs to."
     )
     location = models.CharField(max_length=200, blank=True, null=True)
 

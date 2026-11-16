@@ -145,6 +145,8 @@ class Command(BaseCommand):
                 continue
 
             per_unit, total = calculate_pricing(product, volume, unit)
+            omc_list = ['GOIL PLC', 'TotalEnergies Ghana', 'StarOil Ghana', 'Puma Energy', 'Zen Petroleum', 'Shell Ghana']
+            omc_name = omc_list[(index - 1) % len(omc_list)]
             order = NPARequest.objects.create(
                 npa_reference_number=reference,
                 product_type=product,
@@ -153,7 +155,7 @@ class Command(BaseCommand):
                 volume_requested=Decimal(volume),
                 unit=unit,
                 depot_id=DEPOT,
-                customer_company='Acme Oil Ghana Ltd',
+                customer_company=omc_name,
                 delivery_date=date.today() + timedelta(days=index),
                 delivery_time=time(hour=8 + (index % 8)),
                 delivery_location=location,

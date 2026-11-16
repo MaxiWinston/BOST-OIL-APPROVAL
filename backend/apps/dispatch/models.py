@@ -179,7 +179,7 @@ class NPARequest(models.Model):
         max_length=50,
         blank=True,
         null=True,
-        help_text="Car/plate number declared by the customer at order time."
+        help_text="Car/plate number declared at order time."
     )
     driver_name = models.CharField(max_length=120, blank=True, null=True)
     driver_phone = models.CharField(max_length=30, blank=True, null=True)
