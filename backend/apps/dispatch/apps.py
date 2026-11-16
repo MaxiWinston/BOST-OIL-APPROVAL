@@ -8,10 +8,11 @@ class DispatchConfig(AppConfig):
     name = 'apps.dispatch'
 
     def ready(self):
-        # Auto-start background NPA daily scheduler unless running tests or management migrations
+        # Auto-start background NPA daily scheduler only when explicitly enabled or in dedicated runner
         is_test = 'test' in sys.argv or 'pytest' in sys.modules
-        is_migration = any(cmd in sys.argv for cmd in ['migrate', 'makemigrations', 'collectstatic', 'createsuperuser'])
-        if not is_test and not is_migration:
+        is_management = len(sys.argv) > 1 and not sys.argv[1].startswith('runserver')
+        is_enabled = os.environ.get('ENABLE_BACKGROUND_SCHEDULER', 'False').lower() in ('true', '1')
+        if not is_test and not is_management and is_enabled:
             try:
                 from .scheduler import start_daily_scheduler
                 start_daily_scheduler()

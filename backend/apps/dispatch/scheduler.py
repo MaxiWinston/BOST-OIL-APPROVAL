@@ -24,12 +24,16 @@ def get_seconds_until_next_5am(now=None):
 
 
 def has_orders_for_date(target_date=None, depot_id=None):
-    from apps.dispatch.models import NPARequest
-    target_date = target_date or date.today()
-    qs = NPARequest.objects.filter(delivery_date=target_date)
-    if depot_id:
-        qs = qs.filter(depot_id=depot_id)
-    return qs.exists()
+    try:
+        from apps.dispatch.models import NPARequest
+        target_date = target_date or date.today()
+        qs = NPARequest.objects.filter(delivery_date=target_date)
+        if depot_id:
+            qs = qs.filter(depot_id=depot_id)
+        return qs.exists()
+    except Exception:
+        # If database or table is not ready yet, return True to prevent premature generation
+        return True
 
 
 def ensure_daily_batch_exists(target_date=None, depot_id=None, count=None):

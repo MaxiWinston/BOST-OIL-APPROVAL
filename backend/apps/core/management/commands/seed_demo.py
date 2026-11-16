@@ -26,11 +26,10 @@ PASSWORD = 'Password123!'
 
 DEMO_USERS = [
     # username,   role,                      first name,  last name,  company
-    ('customer', RoleChoices.CUSTOMER, 'Kojo', 'Mensah', 'Acme Oil Ghana Ltd'),
+    ('admin', RoleChoices.ADMIN, 'System', 'Administrator', 'BOST'),
     ('manager', RoleChoices.MANAGER, 'Ama', 'Boateng', 'BOST'),
     ('customs', RoleChoices.CUSTOMS_OFFICER, 'Kofi', 'Anane', 'Ghana Customs'),
     ('dock', RoleChoices.DEPOT_OPERATOR, 'Yaw', 'Owusu', 'BOST Loading Bay'),
-    ('admin', RoleChoices.ADMIN, 'System', 'Administrator', 'BOST'),
 ]
 
 DEMO_ORDERS = [

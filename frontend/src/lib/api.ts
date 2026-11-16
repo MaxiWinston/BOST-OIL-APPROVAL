@@ -13,8 +13,16 @@ import type {
   TvDisplayData,
 } from '../types';
 
+const isProductionDomain =
+  typeof window !== 'undefined' &&
+  !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+const defaultBaseUrl = isProductionDomain
+  ? 'https://bost-manifest-api.onrender.com'
+  : 'http://localhost:8000';
+
 const BASE_URL = (
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8000'
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) || defaultBaseUrl
 ).replace(/\/$/, '');
 
 const API = `${BASE_URL}/api/v1`;

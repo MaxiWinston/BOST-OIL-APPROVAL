@@ -75,10 +75,12 @@ class NPARequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Ensure today's daily NPA batch exists for this depot
+        # Ensure today's daily NPA batch exists for this depot in an isolated savepoint
         try:
+            from django.db import transaction as db_transaction
             from .scheduler import ensure_daily_batch_exists
-            ensure_daily_batch_exists(depot_id=user.depot_id if hasattr(user, 'depot_id') else None)
+            with db_transaction.atomic():
+                ensure_daily_batch_exists(depot_id=user.depot_id if hasattr(user, 'depot_id') else None)
         except Exception:
             pass
 

@@ -184,9 +184,11 @@ class WorkflowStateMachine:
         if not observed_truck_number or not observed_truck_number.strip():
             raise ValidationError("The observed car number must be recorded at the gate.")
 
-        npa_request.verified_truck_number = observed_truck_number.strip()
+        cleaned_truck_num = observed_truck_number.strip()
+        npa_request.verified_truck_number = cleaned_truck_num
 
         if npa_request.car_number_matches is not True:
+            npa_request.verified_truck_number = None
             raise ValidationError(
                 f"Car number mismatch. Order declares '{npa_request.truck_number}', "
                 f"gate observed '{observed_truck_number}'. Deny entry and flag the discrepancy."

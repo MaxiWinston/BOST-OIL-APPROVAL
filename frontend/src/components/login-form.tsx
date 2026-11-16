@@ -149,10 +149,10 @@ export function LoginForm({
               </button>
               <button
                 type="button"
-                onClick={() => fillDemo("customer")}
+                onClick={() => fillDemo("admin")}
                 className="p-1.5 text-left bg-slate-100 hover:bg-slate-200 text-slate-800 transition"
               >
-                Customer: <strong>customer</strong>
+                Admin: <strong>admin</strong>
               </button>
             </div>
           </div>

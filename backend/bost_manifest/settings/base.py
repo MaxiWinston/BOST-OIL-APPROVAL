@@ -76,34 +76,56 @@ WSGI_APPLICATION = 'bost_manifest.wsgi.application'
 
 # Database Configuration
 DATABASE_URL = config('DATABASE_URL', default='')
-USE_SQLITE = config('USE_SQLITE', default=(not bool(DATABASE_URL)), cast=bool)
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
 
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-elif USE_SQLITE:
-    DATABASES = {
+def _configure_database():
+    if USE_SQLITE:
+        return {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+
+    if DATABASE_URL:
+        # Check if the database host is resolvable (fails fast if external/Render DB was deleted or expired)
+        try:
+            import socket
+            from urllib.parse import urlparse
+            parsed = urlparse(DATABASE_URL)
+            if parsed.hostname:
+                socket.getaddrinfo(parsed.hostname, parsed.port or 5432)
+                return {
+                    'default': dj_database_url.config(
+                        default=DATABASE_URL,
+                        conn_max_age=600,
+                        conn_health_checks=True,
+                    )
+                }
+            else:
+                raise ValueError("No hostname in DATABASE_URL")
+        except Exception as err:
+            import logging
+            logging.getLogger('django').warning(
+                "Configured DATABASE_URL host '%s' cannot be resolved (%s). Falling back to SQLite.",
+                parsed.hostname if 'parsed' in locals() and parsed else 'unknown',
+                err,
+            )
+            return {
+                'default': {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': BASE_DIR / 'db.sqlite3',
+                }
+            }
+
+    return {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('POSTGRES_DB', default='bost_manifest_db'),
-            'USER': config('POSTGRES_USER', default='bost_user'),
-            'PASSWORD': config('POSTGRES_PASSWORD', default='bost_password'),
-            'HOST': config('POSTGRES_HOST', default='localhost'),
-            'PORT': config('POSTGRES_PORT', default='5432', cast=int),
-        }
-    }
+
+DATABASES = _configure_database()
 
 # MongoDB Database Configuration
 MONGO_URI = config('MONGO_URI', default='mongodb://localhost:27017/')
