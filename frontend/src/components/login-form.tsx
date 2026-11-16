@@ -31,7 +31,7 @@ export function LoginForm({
 
   // Timer for server wake-up message
   useEffect(() => {
-    let timer: NodeJS.Timeout
+    let timer: ReturnType<typeof setTimeout>
     if (submitting) {
       timer = setTimeout(() => {
         setSlowNotice(true)
